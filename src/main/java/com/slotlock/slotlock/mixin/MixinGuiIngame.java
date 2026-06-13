@@ -7,8 +7,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.slotlock.slotlock.SlotLockManager;
-import com.slotlock.slotlock.SlotLockOverlayHandler;
+import com.slotlock.slotlock.client.SlotLockOverlayHandler;
+import com.slotlock.slotlock.common.SlotLockManager;
 
 @Mixin(GuiIngame.class)
 public abstract class MixinGuiIngame {

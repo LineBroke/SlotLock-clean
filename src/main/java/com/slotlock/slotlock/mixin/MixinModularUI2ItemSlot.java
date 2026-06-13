@@ -15,9 +15,9 @@ import com.cleanroommc.modularui.screen.viewport.ModularGuiContext;
 import com.cleanroommc.modularui.theme.WidgetThemeEntry;
 import com.cleanroommc.modularui.widgets.slot.ItemSlot;
 import com.cleanroommc.modularui.widgets.slot.ModularSlot;
-import com.slotlock.slotlock.ClientProxy;
-import com.slotlock.slotlock.SlotLockManager;
-import com.slotlock.slotlock.SlotLockOverlayHandler;
+import com.slotlock.slotlock.client.ClientProxy;
+import com.slotlock.slotlock.client.SlotLockOverlayHandler;
+import com.slotlock.slotlock.common.SlotLockManager;
 
 @Mixin(value = ItemSlot.class, remap = false)
 public abstract class MixinModularUI2ItemSlot {

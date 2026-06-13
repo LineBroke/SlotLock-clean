@@ -15,8 +15,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.slotlock.slotlock.SlotLockDummyHelper;
-import com.slotlock.slotlock.SlotLockManager;
+import com.slotlock.slotlock.common.SlotLockManager;
+import com.slotlock.slotlock.util.SlotLockDummyHelper;
 
 @Pseudo
 @Mixin(targets = "tconstruct.tools.inventory.CraftingStationContainer", remap = false)

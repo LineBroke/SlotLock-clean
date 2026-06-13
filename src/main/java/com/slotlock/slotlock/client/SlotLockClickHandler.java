@@ -1,9 +1,12 @@
-package com.slotlock.slotlock;
+package com.slotlock.slotlock.client;
 
 import net.minecraft.inventory.Slot;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+
+import com.slotlock.slotlock.common.SlotLockBogoShortcutGuard;
+import com.slotlock.slotlock.common.SlotLockManager;
 
 public final class SlotLockClickHandler {
 

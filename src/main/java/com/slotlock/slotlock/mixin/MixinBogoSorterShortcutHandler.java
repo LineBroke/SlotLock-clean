@@ -22,8 +22,8 @@ import com.cleanroommc.bogosorter.ShortcutHandler;
 import com.cleanroommc.bogosorter.common.sort.GuiSortingContext;
 import com.cleanroommc.bogosorter.common.sort.SlotGroup;
 import com.cleanroommc.bogosorter.mixins.early.minecraft.SlotAccessor;
-import com.slotlock.slotlock.SlotLockBogoShortcutGuard;
-import com.slotlock.slotlock.SlotLockManager;
+import com.slotlock.slotlock.common.SlotLockBogoShortcutGuard;
+import com.slotlock.slotlock.common.SlotLockManager;
 
 @Mixin(value = ShortcutHandler.class, remap = false)
 public abstract class MixinBogoSorterShortcutHandler {

@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.slotlock.slotlock.SlotLockManager;
+import com.slotlock.slotlock.common.SlotLockManager;
 
 import appeng.container.AEBaseContainer;
 import appeng.container.slot.AppEngSlot;

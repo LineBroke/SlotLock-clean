@@ -1,4 +1,4 @@
-package com.slotlock.slotlock;
+package com.slotlock.slotlock.common;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,6 +18,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+
+import com.slotlock.slotlock.SlotLockMod;
 
 import cpw.mods.fml.common.Loader;
 
@@ -61,7 +63,7 @@ public final class SlotLockManager {
 
         saveFile = new File(slotlockDir, "locked_slots.cfg");
 
-        MyMod.LOG.info("SlotLock save file: " + saveFile.getAbsolutePath());
+        SlotLockMod.LOG.info("SlotLock save file: " + saveFile.getAbsolutePath());
 
         load();
     }
@@ -85,7 +87,7 @@ public final class SlotLockManager {
         }
 
         if (!saveFile.exists()) {
-            MyMod.LOG.info("SlotLock load skipped: file does not exist yet");
+            SlotLockMod.LOG.info("SlotLock load skipped: file does not exist yet");
             dirty = false;
             return;
         }
@@ -120,7 +122,7 @@ public final class SlotLockManager {
                 }
             }
         } catch (Exception e) {
-            MyMod.LOG.warn("SlotLock failed to load locked slots: " + e);
+            SlotLockMod.LOG.warn("SlotLock failed to load locked slots: " + e);
         } finally {
             if (inputStream != null) {
                 try {
@@ -131,7 +133,7 @@ public final class SlotLockManager {
 
         dirty = false;
 
-        MyMod.LOG.info("SlotLock loaded slots: " + getSortedLockedSlotsForLog());
+        SlotLockMod.LOG.info("SlotLock loaded slots: " + getSortedLockedSlotsForLog());
     }
 
     public static void saveIfDirtyAfterDelay() {
@@ -150,7 +152,7 @@ public final class SlotLockManager {
         }
 
         if (saveFile == null) {
-            MyMod.LOG.warn("SlotLock saveNow skipped: saveFile is null");
+            SlotLockMod.LOG.warn("SlotLock saveNow skipped: saveFile is null");
             return;
         }
 
@@ -192,11 +194,11 @@ public final class SlotLockManager {
             outputStream = new FileOutputStream(saveFile);
             properties.store(outputStream, "SlotLock locked player inventory slots");
 
-            MyMod.LOG.info("SlotLock saved slots: " + sorted);
+            SlotLockMod.LOG.info("SlotLock saved slots: " + sorted);
 
             return true;
         } catch (Exception e) {
-            MyMod.LOG.warn("SlotLock failed to save locked slots: " + e);
+            SlotLockMod.LOG.warn("SlotLock failed to save locked slots: " + e);
             return false;
         } finally {
             if (outputStream != null) {

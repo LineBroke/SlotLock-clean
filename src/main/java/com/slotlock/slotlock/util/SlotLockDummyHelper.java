@@ -1,4 +1,4 @@
-package com.slotlock.slotlock;
+package com.slotlock.slotlock.util;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;

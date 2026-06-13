@@ -1,4 +1,4 @@
-package com.slotlock.slotlock;
+package com.slotlock.slotlock.common;
 
 public final class SlotLockBogoShortcutGuard {
 

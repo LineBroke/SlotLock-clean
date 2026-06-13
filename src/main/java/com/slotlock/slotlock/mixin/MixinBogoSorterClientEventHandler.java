@@ -12,7 +12,7 @@ import com.cleanroommc.bogosorter.ClientEventHandler;
 import com.cleanroommc.bogosorter.common.sort.GuiSortingContext;
 import com.cleanroommc.bogosorter.common.sort.SlotGroup;
 import com.cleanroommc.bogosorter.mixins.early.minecraft.SlotAccessor;
-import com.slotlock.slotlock.SlotLockManager;
+import com.slotlock.slotlock.common.SlotLockManager;
 
 @Mixin(value = ClientEventHandler.class, remap = false)
 public abstract class MixinBogoSorterClientEventHandler {

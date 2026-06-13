@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.slotlock.slotlock.SlotLockClickHandler;
+import com.slotlock.slotlock.client.SlotLockClickHandler;
 
 @Mixin(GuiContainerCreative.class)
 public abstract class MixinGuiContainerCreative {

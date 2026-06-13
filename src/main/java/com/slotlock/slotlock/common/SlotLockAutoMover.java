@@ -1,4 +1,4 @@
-package com.slotlock.slotlock;
+package com.slotlock.slotlock.common;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;

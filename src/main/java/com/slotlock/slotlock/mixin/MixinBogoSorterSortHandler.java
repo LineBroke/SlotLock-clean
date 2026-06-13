@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.cleanroommc.bogosorter.common.sort.SlotGroup;
 import com.cleanroommc.bogosorter.common.sort.SortHandler;
 import com.cleanroommc.bogosorter.mixins.early.minecraft.SlotAccessor;
-import com.slotlock.slotlock.SlotLockManager;
+import com.slotlock.slotlock.common.SlotLockManager;
 
 @Mixin(value = SortHandler.class, remap = false)
 public abstract class MixinBogoSorterSortHandler {

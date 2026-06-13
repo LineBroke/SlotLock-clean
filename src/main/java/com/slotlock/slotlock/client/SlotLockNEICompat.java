@@ -1,9 +1,11 @@
-package com.slotlock.slotlock;
+package com.slotlock.slotlock.client;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+
+import com.slotlock.slotlock.common.SlotLockManager;
 
 import codechicken.nei.NEIClientUtils;
 

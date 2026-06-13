@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.cleanroommc.bogosorter.common.dropoff.DropOffHandler;
-import com.slotlock.slotlock.SlotLockManager;
+import com.slotlock.slotlock.common.SlotLockManager;
 
 @Mixin(value = DropOffHandler.class, remap = false)
 public abstract class MixinBogoSorterDropOffHandler {

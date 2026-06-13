@@ -1,9 +1,13 @@
-package com.slotlock.slotlock;
+package com.slotlock.slotlock.client;
 
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.input.Keyboard;
+
+import com.slotlock.slotlock.SlotLockMod;
+import com.slotlock.slotlock.common.CommonProxy;
+import com.slotlock.slotlock.common.SlotLockAutoMover;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -15,7 +19,7 @@ public class ClientProxy extends CommonProxy {
 
     @Override
     public void preInit(FMLPreInitializationEvent event) {
-        MyMod.LOG.info("SlotLock ClientProxy preInit called");
+        SlotLockMod.LOG.info("SlotLock ClientProxy preInit called");
 
         super.preInit(event);
 
@@ -53,8 +57,8 @@ public class ClientProxy extends CommonProxy {
             .bus()
             .register(SlotLockDebugClientHandler.instance());
 
-        MyMod.LOG.info("SlotLock overlay registered");
-        MyMod.LOG.info("SlotLock client tick handler registered");
-        MyMod.LOG.info("SlotLock debug handler registered");
+        SlotLockMod.LOG.info("SlotLock overlay registered");
+        SlotLockMod.LOG.info("SlotLock client tick handler registered");
+        SlotLockMod.LOG.info("SlotLock debug handler registered");
     }
 }

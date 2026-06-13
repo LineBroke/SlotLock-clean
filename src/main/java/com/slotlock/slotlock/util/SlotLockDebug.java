@@ -1,4 +1,4 @@
-package com.slotlock.slotlock;
+package com.slotlock.slotlock.util;
 
 import java.util.List;
 
@@ -7,6 +7,9 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+
+import com.slotlock.slotlock.SlotLockMod;
+import com.slotlock.slotlock.common.SlotLockManager;
 
 public final class SlotLockDebug {
 
@@ -23,7 +26,7 @@ public final class SlotLockDebug {
             return;
         }
 
-        MyMod.LOG.info("[SlotLock DEBUG] " + message);
+        SlotLockMod.LOG.info("[SlotLock DEBUG] " + message);
     }
 
     public static void dumpCurrentContainer(EntityPlayer player, Container container, Object currentScreen,

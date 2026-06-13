@@ -1,4 +1,4 @@
-package com.slotlock.slotlock;
+package com.slotlock.slotlock.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -7,6 +7,9 @@ import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 
 import org.lwjgl.input.Keyboard;
+
+import com.slotlock.slotlock.common.SlotLockManager;
+import com.slotlock.slotlock.util.SlotLockDebug;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
