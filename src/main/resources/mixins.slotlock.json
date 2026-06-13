@@ -6,35 +6,14 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "vanilla.MixinInventoryPlayer",
-    "vanilla.MixinContainer",
-
-    "ae2.MixinAEBaseContainer",
-    "ae2.MixinAEAdaptorPlayerInventory",
-
-    "bogosorter.MixinBogoSorterDropOffHandler",
-
-    "modularui2.MixinModularUI2ModularSlot",
-    "modularui2.MixinModularUI2Container",
-
-    "tconstruct.MixinCraftingStationContainer"
+    "vanilla.MixinContainer"
   ],
   "client": [
     "vanilla.MixinGuiContainer",
     "vanilla.MixinGuiContainerCreative",
     "vanilla.MixinEntityPlayer",
     "vanilla.MixinGuiContainerRender",
-    "vanilla.MixinGuiIngame",
-
-    "nei.MixinNEIClientUtils",
-    "nei.MixinNEIPanelWidget",
-
-    "bogosorter.MixinBogoSorterSortHandler",
-    "bogosorter.MixinBogoSorterShortcutHandler",
-
-    "mousetweaks.MixinMouseTweaksClickHandler",
-    "mousetweaks.MixinMouseTweaksWheelHandler",
-
-    "modularui2.MixinModularUI2ItemSlot"
+    "vanilla.MixinGuiIngame"
   ],
   "server": []
 }
