@@ -11,6 +11,7 @@ public enum TargetMods implements ITargetMod {
     NEI("NotEnoughItems"),
     BOGOSORTER("bogosorter"),
     MOUSE_TWEAKS("MouseTweaks"),
+    MODULAR_UI("modularui"),
     MODULAR_UI2("modularui2"),
     TCONSTRUCT("TConstruct");
 

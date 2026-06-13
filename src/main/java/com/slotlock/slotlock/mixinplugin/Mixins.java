@@ -24,6 +24,10 @@ public enum Mixins implements IMixins {
         .addRequiredMod(TargetMods.MOUSE_TWEAKS)
         .addClientMixins("mousetweaks.MixinMouseTweaksClickHandler", "mousetweaks.MixinMouseTweaksWheelHandler")),
 
+    MODULAR_UI(new MixinBuilder().setPhase(Phase.LATE)
+        .addRequiredMod(TargetMods.MODULAR_UI)
+        .addClientMixins("modularui.MixinModularGui")),
+
     MODULAR_UI2(new MixinBuilder().setPhase(Phase.LATE)
         .addRequiredMod(TargetMods.MODULAR_UI2)
         .addCommonMixins("modularui2.MixinModularUI2ModularSlot", "modularui2.MixinModularUI2Container")
