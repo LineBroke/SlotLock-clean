@@ -34,19 +34,17 @@ public final class SlotLockClickHandler {
         }
 
         /*
-         * 双击收集同类物品：完全交给原版。
-         * 不在 GUI 层判断锁定槽。
-         * 不在 GUI 层取消 mode 6。
-         * 这是为了恢复原版双击收集逻辑。
+         * 双击收集：
+         * 未锁定槽完全放行。
+         * 锁定槽本身才拦。
          */
         if (clickType == 6) {
-            return false;
+            return slot != null && SlotLockManager.isLocked(slot);
         }
 
         /*
-         * 拖拽分配物品。
+         * 拖拽分配物品：
          * 只在“拖拽添加经过的槽”阶段阻止锁定槽。
-         * 非锁定槽完全交给原版 / AE / MouseTweaks。
          */
         if (isLockedDragSlot(slot, mouseButton, clickType)) {
             return true;
@@ -76,15 +74,13 @@ public final class SlotLockClickHandler {
             return false;
         }
 
+        int dragEvent = (mouseButton >> 2) & 3;
+
         /*
-         * Container drag click 编码：
-         * event = mouseButton >> 2 & 3
          * 0 = 开始拖拽
          * 1 = 添加经过的槽
          * 2 = 结束拖拽
          */
-        int dragEvent = (mouseButton >> 2) & 3;
-
         if (dragEvent != 1) {
             return false;
         }

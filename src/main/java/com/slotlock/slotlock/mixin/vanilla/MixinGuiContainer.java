@@ -14,16 +14,11 @@ import com.slotlock.slotlock.client.SlotLockClickHandler;
 public abstract class MixinGuiContainer {
 
     /**
-     * 1.7.10 GuiContainer 的核心 slot 点击处理方法。
+     * 只拦 SlotLock 明确要保护的锁定槽。
      *
-     * 这里只做一件事：
-     * 如果本次点击目标是 SlotLock 明确要保护的锁定槽，就取消。
-     *
-     * 不再改 mouseClickMove。
-     * 不再 Redirect Set.add。
-     * 不再清理 drag preview set。
-     *
-     * 非锁定槽全部交给原版 / AE / MouseTweaks。
+     * 不碰 mouseClickMove。
+     * 不碰 drag preview set。
+     * 不碰非锁定槽。
      */
     @Inject(method = "handleMouseClick", at = @At("HEAD"), cancellable = true)
     private void slotlock$handleMouseClick(Slot slot, int slotId, int mouseButton, int clickType, CallbackInfo ci) {
