@@ -4,7 +4,7 @@
 		"modid": "${modId}",
 		"name": "${modName}",
 		"description": "A client-side inventory slot locking mod for Minecraft 1.7.10.",
-		"version": "${modVersion}",
+		"version": "0.1.0-dev",
 		"mcversion": "${minecraftVersion}",
 		"url": "https://github.com/LineBroke/SlotLock",
 		"updateUrl": "",
