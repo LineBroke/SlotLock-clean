@@ -16,11 +16,7 @@ public abstract class MixinGuiContainerRender {
 
     @Inject(method = "func_146977_a(Lnet/minecraft/inventory/Slot;)V", at = @At("HEAD"))
     private void slotlock$drawLockedBackground(Slot slot, CallbackInfo ci) {
-        if (slot == null) {
-            return;
-        }
-
-        if (!SlotLockManager.isLocked(slot)) {
+        if (!shouldDrawLockedOverlay(slot)) {
             return;
         }
 
@@ -29,14 +25,22 @@ public abstract class MixinGuiContainerRender {
 
     @Inject(method = "func_146977_a(Lnet/minecraft/inventory/Slot;)V", at = @At("TAIL"))
     private void slotlock$drawLockIcon(Slot slot, CallbackInfo ci) {
-        if (slot == null) {
-            return;
-        }
-
-        if (!SlotLockManager.isLocked(slot)) {
+        if (!shouldDrawLockedOverlay(slot)) {
             return;
         }
 
         SlotLockOverlayHandler.drawLockedIcon(slot.xDisplayPosition, slot.yDisplayPosition);
+    }
+
+    private static boolean shouldDrawLockedOverlay(Slot slot) {
+        if (slot == null) {
+            return false;
+        }
+
+        if (!SlotLockManager.hasAnyLock()) {
+            return false;
+        }
+
+        return SlotLockManager.isLocked(slot);
     }
 }

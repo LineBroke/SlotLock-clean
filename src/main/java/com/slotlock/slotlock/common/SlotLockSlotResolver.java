@@ -53,6 +53,18 @@ public final class SlotLockSlotResolver {
 
         Slot realSlot = unwrapSlot(slot);
 
+        /*
+         * CreativeSlot is a wrapper.
+         * Its own getSlotIndex() is NOT always the real InventoryPlayer index.
+         * If unwrap fails, do not guess.
+         * Otherwise creative armor/crafting/special slots can be mistaken for
+         * player hotbar slots because their local indexes can overlap with 0-8.
+         */
+        if (isCreativeSlot(slot) && realSlot == slot) {
+            SLOT_INDEX_CACHE.put(slot, Integer.valueOf(-1));
+            return -1;
+        }
+
         if (realSlot == null) {
             SLOT_INDEX_CACHE.put(slot, Integer.valueOf(-1));
             return -1;
@@ -115,23 +127,45 @@ public final class SlotLockSlotResolver {
 
         /*
          * Creative inventory wraps real Slot in GuiContainerCreative.CreativeSlot.
+         * Do not rely only on field name "slot".
+         * In 1.7.10 / dev / obfuscated environments, the field name may differ.
+         * So first try common names, then scan all fields whose type is Slot.
          */
         try {
             Class<?> clazz = getCreativeSlotClass();
 
             if (clazz != null && clazz.isInstance(slot)) {
-                Field field = clazz.getDeclaredField("slot");
-                field.setAccessible(true);
+                Object inner = readObjectField(slot, "slot");
 
-                Object inner = field.get(slot);
-
-                if (inner instanceof Slot) {
+                if (inner instanceof Slot && inner != slot) {
                     return (Slot) inner;
+                }
+
+                inner = readObjectField(slot, "field_148332_b");
+
+                if (inner instanceof Slot && inner != slot) {
+                    return (Slot) inner;
+                }
+
+                Slot scanned = findSlotField(slot);
+
+                if (scanned != null && scanned != slot) {
+                    return scanned;
                 }
             }
         } catch (Throwable ignored) {}
 
         return slot;
+    }
+
+    private static boolean isCreativeSlot(Slot slot) {
+        if (slot == null) {
+            return false;
+        }
+
+        Class<?> clazz = getCreativeSlotClass();
+
+        return clazz != null && clazz.isInstance(slot);
     }
 
     private static Class<?> getCreativeSlotClass() {
@@ -148,6 +182,38 @@ public final class SlotLockSlotResolver {
         }
 
         return creativeSlotClass;
+    }
+
+    private static Slot findSlotField(Object target) {
+        if (target == null) {
+            return null;
+        }
+
+        Class<?> clazz = target.getClass();
+
+        while (clazz != null) {
+            Field[] fields = clazz.getDeclaredFields();
+
+            for (Field field : fields) {
+                try {
+                    if (!Slot.class.isAssignableFrom(field.getType())) {
+                        continue;
+                    }
+
+                    field.setAccessible(true);
+
+                    Object value = field.get(target);
+
+                    if (value instanceof Slot && value != target) {
+                        return (Slot) value;
+                    }
+                } catch (Throwable ignored) {}
+            }
+
+            clazz = clazz.getSuperclass();
+        }
+
+        return null;
     }
 
     private static int getModularUIPlayerSlotIndex(Slot slot) {
