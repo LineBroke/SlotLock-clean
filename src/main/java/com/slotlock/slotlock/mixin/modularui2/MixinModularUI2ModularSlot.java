@@ -1,4 +1,4 @@
-package com.slotlock.slotlock.mixin;
+package com.slotlock.slotlock.mixin.modularui2;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;

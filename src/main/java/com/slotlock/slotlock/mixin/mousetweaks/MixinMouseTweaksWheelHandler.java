@@ -1,4 +1,4 @@
-package com.slotlock.slotlock.mixin;
+package com.slotlock.slotlock.mixin.mousetweaks;
 
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.inventory.Slot;

@@ -1,4 +1,4 @@
-package com.slotlock.slotlock.mixin;
+package com.slotlock.slotlock.mixin.bogosorter;
 
 import java.util.ArrayList;
 import java.util.List;

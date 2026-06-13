@@ -1,4 +1,4 @@
-package com.slotlock.slotlock.mixin;
+package com.slotlock.slotlock.mixin.ae2;
 
 import net.minecraft.item.ItemStack;
 

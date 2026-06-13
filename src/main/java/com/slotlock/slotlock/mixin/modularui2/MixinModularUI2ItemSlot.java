@@ -1,4 +1,4 @@
-package com.slotlock.slotlock.mixin;
+package com.slotlock.slotlock.mixin.modularui2;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;

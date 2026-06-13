@@ -1,4 +1,4 @@
-package com.slotlock.slotlock.mixin;
+package com.slotlock.slotlock.mixin.nei;
 
 import java.lang.reflect.Field;
 import java.util.List;

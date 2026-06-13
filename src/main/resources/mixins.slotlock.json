@@ -5,28 +5,36 @@
   "refmap": "mixins.slotlock.refmap.json",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinInventoryPlayer",
-    "MixinContainer",
-    "MixinAEBaseContainer",
-    "MixinAEAdaptorPlayerInventory",
-    "MixinBogoSorterDropOffHandler",
-    "MixinModularUI2ModularSlot",
-    "MixinModularUI2Container",
-    "MixinCraftingStationContainer"
+    "vanilla.MixinInventoryPlayer",
+    "vanilla.MixinContainer",
+
+    "ae2.MixinAEBaseContainer",
+    "ae2.MixinAEAdaptorPlayerInventory",
+
+    "bogosorter.MixinBogoSorterDropOffHandler",
+
+    "modularui2.MixinModularUI2ModularSlot",
+    "modularui2.MixinModularUI2Container",
+
+    "tconstruct.MixinCraftingStationContainer"
   ],
   "client": [
-    "MixinGuiContainer",
-    "MixinGuiContainerCreative",
-    "MixinEntityPlayer",
-    "MixinGuiContainerRender",
-    "MixinGuiIngame",
-    "MixinNEIClientUtils",
-    "MixinNEIPanelWidget",
-    "MixinBogoSorterSortHandler",
-    "MixinMouseTweaksClickHandler",
-    "MixinMouseTweaksWheelHandler",
-    "MixinBogoSorterShortcutHandler",
-    "MixinModularUI2ItemSlot"
+    "vanilla.MixinGuiContainer",
+    "vanilla.MixinGuiContainerCreative",
+    "vanilla.MixinEntityPlayer",
+    "vanilla.MixinGuiContainerRender",
+    "vanilla.MixinGuiIngame",
+
+    "nei.MixinNEIClientUtils",
+    "nei.MixinNEIPanelWidget",
+
+    "bogosorter.MixinBogoSorterSortHandler",
+    "bogosorter.MixinBogoSorterShortcutHandler",
+
+    "mousetweaks.MixinMouseTweaksClickHandler",
+    "mousetweaks.MixinMouseTweaksWheelHandler",
+
+    "modularui2.MixinModularUI2ItemSlot"
   ],
   "server": []
 }

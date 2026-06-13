@@ -1,4 +1,4 @@
-package com.slotlock.slotlock.mixin;
+package com.slotlock.slotlock.mixin.bogosorter;
 
 import net.minecraft.inventory.IInventory;
 
