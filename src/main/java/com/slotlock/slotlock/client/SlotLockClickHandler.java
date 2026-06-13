@@ -1,6 +1,7 @@
 package com.slotlock.slotlock.client;
 
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -39,12 +40,12 @@ public final class SlotLockClickHandler {
 
         /*
          * clickType == 5 是拖拽分配物品。
-         * 不能直接禁止整个 clickType 5，
-         * 否则左键拖拽均分、右键拖拽逐个放置都会失效。
-         * 这里只在“拖拽经过锁定槽并尝试添加这个槽”时拦截。
+         * 左键拖拽和右键拖拽都走同一个判断：
+         * 只要当前拖拽事件是在“添加经过的槽”阶段，并且该槽被锁定，
+         * 就跳过这个槽。
          */
-        if (clickType == 5) {
-            return shouldCancelDragSlot(slot, mouseButton);
+        if (isLockedDragSlot(slot, mouseButton, clickType)) {
+            return true;
         }
 
         if (slot == null) {
@@ -80,8 +81,14 @@ public final class SlotLockClickHandler {
         return false;
     }
 
-    private static boolean shouldCancelDragSlot(Slot slot, int mouseButton) {
-        if (slot == null) {
+    /**
+     * Container click 阶段的拖拽锁槽判断。
+     *
+     * 这里处理的是 Minecraft 已经编码过的 clickType/mouseButton：
+     * clickType == 5 表示拖拽分配物品。
+     */
+    public static boolean isLockedDragSlot(Slot slot, int mouseButton, int clickType) {
+        if (clickType != 5) {
             return false;
         }
 
@@ -91,18 +98,107 @@ public final class SlotLockClickHandler {
          * 0 = 开始拖拽
          * 1 = 添加经过的槽
          * 2 = 结束拖拽
+         * 左键拖拽和右键拖拽在这里都一样：
+         * 只有“添加经过的槽”阶段需要跳过锁定槽。
          */
-        int dragEvent = (mouseButton >> 2) & 3;
+        int dragEvent = getDragEvent(mouseButton);
 
-        /*
-         * 只在“添加经过的槽”阶段拦截锁定槽。
-         * 开始和结束阶段不能拦，否则整个拖拽流程会坏掉。
-         */
         if (dragEvent != 1) {
             return false;
         }
 
+        return shouldSkipLockedDragTarget(slot);
+    }
+
+    /**
+     * GuiContainer mouseClickMove 阶段的拖拽预览判断。
+     *
+     * 这个方法统一决定一个 slot 是否应该从客户端 drag preview set 里移除。
+     *
+     * 移除条件：
+     * 1. 锁定槽
+     * 2. 实际不能接收当前鼠标物品的槽，比如已满一组的同类物品槽
+     */
+    public static boolean shouldRemoveDragPreviewSlot(Slot slot, ItemStack stackOnMouse) {
+        if (slot == null) {
+            return false;
+        }
+
+        if (shouldSkipLockedDragTarget(slot)) {
+            return true;
+        }
+
+        if (stackOnMouse == null || stackOnMouse.stackSize <= 0) {
+            return false;
+        }
+
+        return !canAcceptAtLeastOneDraggedItem(slot, stackOnMouse);
+    }
+
+    /**
+     * 单一来源：
+     * 所有“拖拽时是否因为锁定而跳过这个槽”的判断都走这里。
+     */
+    private static boolean shouldSkipLockedDragTarget(Slot slot) {
+        if (slot == null) {
+            return false;
+        }
+
+        if (!SlotLockManager.hasAnyLock()) {
+            return false;
+        }
+
         return SlotLockManager.isLocked(slot);
+    }
+
+    /**
+     * 判断当前 slot 是否真的能接收至少 1 个鼠标上的物品。
+     *
+     * 这一步用于修复客户端拖拽预览：
+     * 已经满 64 个的未锁定槽，不应该出现“短暂停留”的假预览。
+     */
+    private static boolean canAcceptAtLeastOneDraggedItem(Slot slot, ItemStack stackOnMouse) {
+        if (slot == null || stackOnMouse == null || stackOnMouse.stackSize <= 0) {
+            return false;
+        }
+
+        if (!slot.isItemValid(stackOnMouse)) {
+            return false;
+        }
+
+        ItemStack existingStack = slot.getStack();
+
+        if (existingStack == null) {
+            return true;
+        }
+
+        if (!canStacksMerge(stackOnMouse, existingStack)) {
+            return false;
+        }
+
+        int limit = Math.min(stackOnMouse.getMaxStackSize(), slot.getSlotStackLimit());
+
+        return existingStack.stackSize < limit;
+    }
+
+    private static boolean canStacksMerge(ItemStack sourceStack, ItemStack targetStack) {
+        if (sourceStack == null || targetStack == null) {
+            return false;
+        }
+
+        if (sourceStack.getItem() != targetStack.getItem()) {
+            return false;
+        }
+
+        if (sourceStack.getHasSubtypes() && sourceStack.getItemDamage() != targetStack.getItemDamage()) {
+            return false;
+        }
+
+        return ItemStack.areItemStackTagsEqual(sourceStack, targetStack);
+    }
+
+    private static int getDragEvent(int mouseButton) {
+        return (mouseButton >> 2) & 3;
     }
 
     private static boolean isLockKeyDown() {
