@@ -18,10 +18,7 @@ public enum Mixins implements IMixins {
     BOGOSORTER(new MixinBuilder().setPhase(Phase.LATE)
         .addRequiredMod(TargetMods.BOGOSORTER)
         .addCommonMixins("bogosorter.MixinBogoSorterDropOffHandler")
-        .addClientMixins(
-            "bogosorter.MixinBogoSorterClientEventHandler",
-            "bogosorter.MixinBogoSorterSortHandler",
-            "bogosorter.MixinBogoSorterShortcutHandler")),
+        .addClientMixins("bogosorter.MixinBogoSorterSortHandler", "bogosorter.MixinBogoSorterShortcutHandler")),
 
     MOUSE_TWEAKS(new MixinBuilder().setPhase(Phase.LATE)
         .addRequiredMod(TargetMods.MOUSE_TWEAKS)
