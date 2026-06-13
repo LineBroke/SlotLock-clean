@@ -1,0 +1,32 @@
+{
+  "required": true,
+  "minVersion": "0.7.11",
+  "package": "com.slotlock.slotlock.mixin",
+  "refmap": "mixins.slotlock.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinInventoryPlayer",
+    "MixinContainer",
+    "MixinAEBaseContainer",
+    "MixinAEAdaptorPlayerInventory",
+    "MixinBogoSorterDropOffHandler",
+    "MixinModularUI2ModularSlot",
+    "MixinModularUI2Container",
+    "MixinCraftingStationContainer"
+  ],
+  "client": [
+    "MixinGuiContainer",
+    "MixinGuiContainerCreative",
+    "MixinEntityPlayer",
+    "MixinGuiContainerRender",
+    "MixinGuiIngame",
+    "MixinNEIClientUtils",
+    "MixinNEIPanelWidget",
+    "MixinBogoSorterSortHandler",
+    "MixinMouseTweaksClickHandler",
+    "MixinMouseTweaksWheelHandler",
+    "MixinBogoSorterShortcutHandler",
+    "MixinModularUI2ItemSlot"
+  ],
+  "server": []
+}
