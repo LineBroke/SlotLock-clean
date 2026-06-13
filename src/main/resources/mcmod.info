@@ -6,7 +6,7 @@
 		"description": "A client-side inventory slot locking mod for Minecraft 1.7.10.",
 		"version": "${modVersion}",
 		"mcversion": "${minecraftVersion}",
-		"url": "https://github.com/LineBroke/SlotLock-clean",
+		"url": "https://github.com/LineBroke/SlotLock",
 		"updateUrl": "",
 		"authorList": ["LineBroke"],
 		"credits": "",
