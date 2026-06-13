@@ -36,7 +36,6 @@ public final class SlotLockClickHandler {
         /*
          * clickType == 5 是 Container 层的拖拽分配。
          * 这里只阻止锁定槽，不判断满堆叠、不判断能否合并。
-         * 原版拖拽均分和 preview 计算必须保持原样。
          */
         if (isLockedDragSlot(slot, mouseButton, clickType)) {
             return true;
@@ -93,16 +92,12 @@ public final class SlotLockClickHandler {
      *
      * 左键拖拽和右键拖拽保持同一套逻辑：
      * 当前滑过的槽如果是锁定槽，就跳过；
-     * 否则完全交给原版。
+     * 否则完全交给原版 / AE / MouseTweaks。
      */
     public static boolean shouldSkipDragPreviewSlot(Slot slot) {
         return shouldSkipDragSlot(slot);
     }
 
-    /**
-     * 单一来源：
-     * 所有拖拽跳过逻辑只判断锁定槽。
-     */
     private static boolean shouldSkipDragSlot(Slot slot) {
         if (slot == null) {
             return false;

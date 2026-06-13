@@ -24,6 +24,15 @@ public abstract class MixinModularUI2Container {
         }
 
         /*
+         * Double-click collect:
+         * Do not cancel mode 6 globally.
+         * Only direct locked-slot interactions should be blocked below.
+         */
+        if (mode == 6) {
+            return;
+        }
+
+        /*
          * Number-key swap into locked hotbar slot.
          */
         if (mode == 2 && mouseButton >= 0 && mouseButton <= 8) {
@@ -31,14 +40,6 @@ public abstract class MixinModularUI2Container {
                 cir.setReturnValue(null);
                 return;
             }
-        }
-
-        /*
-         * Double-click collect.
-         */
-        if (mode == 6) {
-            cir.setReturnValue(null);
-            return;
         }
 
         Slot slot = slotlock$getSlot(slotId);
