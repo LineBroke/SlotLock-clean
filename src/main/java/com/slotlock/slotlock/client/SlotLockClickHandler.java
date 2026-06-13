@@ -1,7 +1,6 @@
 package com.slotlock.slotlock.client;
 
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemStack;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -36,7 +35,8 @@ public final class SlotLockClickHandler {
 
         /*
          * clickType == 5 是 Container 层的拖拽分配。
-         * 这里只阻止锁定槽，不改原版拖拽分配规则。
+         * 这里只阻止锁定槽，不判断满堆叠、不判断能否合并。
+         * 原版拖拽均分和 preview 计算必须保持原样。
          */
         if (isLockedDragSlot(slot, mouseButton, clickType)) {
             return true;
@@ -85,30 +85,25 @@ public final class SlotLockClickHandler {
             return false;
         }
 
-        return isLockedDragTarget(slot);
+        return shouldSkipDragSlot(slot);
     }
 
     /**
      * GuiContainer.mouseClickMove 阶段使用。
      *
-     * 这个方法只判断“当前鼠标滑过的槽”是否应该跳过。
-     * 不扫描整个 drag preview set。
-     *
-     * 左键和右键都走这里，逻辑保持一致。
+     * 左键拖拽和右键拖拽保持同一套逻辑：
+     * 当前滑过的槽如果是锁定槽，就跳过；
+     * 否则完全交给原版。
      */
-    public static boolean shouldSkipDragPreviewSlot(Slot slot, ItemStack stackOnMouse) {
-        if (isLockedDragTarget(slot)) {
-            return true;
-        }
-
-        if (slot == null || stackOnMouse == null || stackOnMouse.stackSize <= 0) {
-            return false;
-        }
-
-        return !canAcceptAtLeastOneDraggedItem(slot, stackOnMouse);
+    public static boolean shouldSkipDragPreviewSlot(Slot slot) {
+        return shouldSkipDragSlot(slot);
     }
 
-    private static boolean isLockedDragTarget(Slot slot) {
+    /**
+     * 单一来源：
+     * 所有拖拽跳过逻辑只判断锁定槽。
+     */
+    private static boolean shouldSkipDragSlot(Slot slot) {
         if (slot == null) {
             return false;
         }
@@ -118,50 +113,6 @@ public final class SlotLockClickHandler {
         }
 
         return SlotLockManager.isLocked(slot);
-    }
-
-    private static boolean canAcceptAtLeastOneDraggedItem(Slot slot, ItemStack stackOnMouse) {
-        if (slot == null || stackOnMouse == null || stackOnMouse.stackSize <= 0) {
-            return false;
-        }
-
-        if (!slot.isItemValid(stackOnMouse)) {
-            return false;
-        }
-
-        int limit = Math.min(stackOnMouse.getMaxStackSize(), slot.getSlotStackLimit());
-
-        if (limit <= 0) {
-            return false;
-        }
-
-        ItemStack existingStack = slot.getStack();
-
-        if (existingStack == null) {
-            return true;
-        }
-
-        if (!canStacksMerge(stackOnMouse, existingStack)) {
-            return false;
-        }
-
-        return existingStack.stackSize < limit;
-    }
-
-    private static boolean canStacksMerge(ItemStack sourceStack, ItemStack targetStack) {
-        if (sourceStack == null || targetStack == null) {
-            return false;
-        }
-
-        if (sourceStack.getItem() != targetStack.getItem()) {
-            return false;
-        }
-
-        if (sourceStack.getHasSubtypes() && sourceStack.getItemDamage() != targetStack.getItemDamage()) {
-            return false;
-        }
-
-        return ItemStack.areItemStackTagsEqual(sourceStack, targetStack);
     }
 
     private static int getDragEvent(int mouseButton) {

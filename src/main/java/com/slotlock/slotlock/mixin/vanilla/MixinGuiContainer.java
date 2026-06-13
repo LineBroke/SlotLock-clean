@@ -2,10 +2,8 @@ package com.slotlock.slotlock.mixin.vanilla;
 
 import java.util.Set;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemStack;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,8 +19,8 @@ public abstract class MixinGuiContainer {
 
     /*
      * GuiContainer drag-splitting preview slot set.
-     * 这里只在必要时移除“当前滑过的槽”。
-     * 不再遍历整个 set，避免干涉原版左键拖拽预览。
+     * 只在当前滑过的槽是锁定槽时，把它从 preview set 里移除。
+     * 不处理满堆叠、不兼容物品等原版规则。
      */
     @Shadow
     @Final
@@ -55,19 +53,20 @@ public abstract class MixinGuiContainer {
     }
 
     /**
-     * 照右键拖拽的思路处理左键拖拽：
+     * 照右键拖拽逻辑处理左键拖拽：
      *
-     * 鼠标滑过一个不该参与拖拽的槽时，直接跳过当前槽。
-     * 不扫描整个 field_147008_s。
-     * 不改 Container 真实分配逻辑。
+     * 当前滑过的是锁定槽 -> 跳过；
+     * 当前滑过的不是锁定槽 -> 完全放给原版。
+     *
+     * 这里不能判断满堆叠、能否合并。
+     * 否则会破坏原版左键拖拽均分的 preview 计算。
      */
     @Inject(method = "mouseClickMove", at = @At("HEAD"), cancellable = true)
-    private void slotlock$skipInvalidDragPreviewSlot(int mouseX, int mouseY, int mouseButton, long timeSinceLastClick,
+    private void slotlock$skipLockedDragPreviewSlot(int mouseX, int mouseY, int mouseButton, long timeSinceLastClick,
         CallbackInfo ci) {
         Slot slot = this.getSlotAtPosition(mouseX, mouseY);
-        ItemStack stackOnMouse = getStackOnMouse();
 
-        if (!SlotLockClickHandler.shouldSkipDragPreviewSlot(slot, stackOnMouse)) {
+        if (!SlotLockClickHandler.shouldSkipDragPreviewSlot(slot)) {
             return;
         }
 
@@ -87,15 +86,5 @@ public abstract class MixinGuiContainer {
         if (this.field_147008_s.remove(slot)) {
             this.func_146980_g();
         }
-    }
-
-    private static ItemStack getStackOnMouse() {
-        Minecraft minecraft = Minecraft.getMinecraft();
-
-        if (minecraft == null || minecraft.thePlayer == null || minecraft.thePlayer.inventory == null) {
-            return null;
-        }
-
-        return minecraft.thePlayer.inventory.getItemStack();
     }
 }
