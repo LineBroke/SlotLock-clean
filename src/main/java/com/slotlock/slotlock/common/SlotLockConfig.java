@@ -6,12 +6,21 @@ import net.minecraftforge.common.config.Configuration;
 
 public final class SlotLockConfig {
 
+    private static final String CONFIG_DIRECTORY_NAME = "slotlock";
+    private static final String CONFIG_FILE_NAME = "slotlock.cfg";
+
     private static boolean debugEnabled = false;
 
     private SlotLockConfig() {}
 
     public static void load(File configDir) {
-        Configuration config = new Configuration(new File(configDir, "slotlock.cfg"));
+        File slotLockConfigDir = new File(configDir, CONFIG_DIRECTORY_NAME);
+
+        if (!slotLockConfigDir.exists() && !slotLockConfigDir.mkdirs()) {
+            throw new IllegalStateException("Failed to create SlotLock config directory: " + slotLockConfigDir);
+        }
+
+        Configuration config = new Configuration(new File(slotLockConfigDir, CONFIG_FILE_NAME));
 
         try {
             debugEnabled = config.getBoolean(
