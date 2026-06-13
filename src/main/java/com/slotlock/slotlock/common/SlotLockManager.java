@@ -1,16 +1,11 @@
 package com.slotlock.slotlock.common;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -18,10 +13,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-
-import com.slotlock.slotlock.SlotLockMod;
-
-import cpw.mods.fml.common.Loader;
 
 public final class SlotLockManager {
 
@@ -37,12 +28,6 @@ public final class SlotLockManager {
     private static final Map<Slot, Integer> SLOT_INDEX_CACHE = Collections
         .synchronizedMap(new WeakHashMap<Slot, Integer>());
 
-    private static final long SAVE_DELAY_MS = 500L;
-
-    private static File saveFile;
-    private static boolean dirty = false;
-    private static long dirtyTime = 0L;
-
     private static boolean creativeSlotClassLookupDone = false;
     private static Class<?> creativeSlotClass = null;
 
@@ -55,16 +40,7 @@ public final class SlotLockManager {
     private SlotLockManager() {}
 
     public static void setSaveFile(File configDir) {
-        File slotlockDir = new File(configDir, "slotlock");
-
-        if (!slotlockDir.exists()) {
-            slotlockDir.mkdirs();
-        }
-
-        saveFile = new File(slotlockDir, "locked_slots.cfg");
-
-        SlotLockMod.LOG.info("SlotLock save file: " + saveFile.getAbsolutePath());
-
+        SlotLockStorage.setSaveFile(configDir);
         load();
     }
 
@@ -73,145 +49,19 @@ public final class SlotLockManager {
         EMPTY_WHEN_LOCKED_PLAYER_SLOTS.clear();
         SLOT_INDEX_CACHE.clear();
 
-        if (saveFile == null) {
-            File configDir = new File(
-                Loader.instance()
-                    .getConfigDir(),
-                "slotlock");
-
-            if (!configDir.exists()) {
-                configDir.mkdirs();
-            }
-
-            saveFile = new File(configDir, "locked_slots.cfg");
-        }
-
-        if (!saveFile.exists()) {
-            SlotLockMod.LOG.info("SlotLock load skipped: file does not exist yet");
-            dirty = false;
-            return;
-        }
-
-        Properties properties = new Properties();
-        FileInputStream inputStream = null;
-
-        try {
-            inputStream = new FileInputStream(saveFile);
-            properties.load(inputStream);
-
-            String lockedSlots = properties.getProperty("lockedSlots", "");
-
-            if (lockedSlots != null && lockedSlots.trim()
-                .length() > 0) {
-                String[] parts = lockedSlots.split(",");
-
-                for (String part : parts) {
-                    String trimmed = part.trim();
-
-                    if (trimmed.length() == 0) {
-                        continue;
-                    }
-
-                    try {
-                        int index = Integer.parseInt(trimmed);
-
-                        if (index >= 0 && index <= 35) {
-                            LOCKED_PLAYER_SLOTS.add(index);
-                        }
-                    } catch (NumberFormatException ignored) {}
-                }
-            }
-        } catch (Exception e) {
-            SlotLockMod.LOG.warn("SlotLock failed to load locked slots: " + e);
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (Exception ignored) {}
-            }
-        }
-
-        dirty = false;
-
-        SlotLockMod.LOG.info("SlotLock loaded slots: " + getSortedLockedSlotsForLog());
+        SlotLockStorage.loadInto(LOCKED_PLAYER_SLOTS);
     }
 
     public static void saveIfDirtyAfterDelay() {
-        if (!dirty) {
-            return;
-        }
-
-        if (System.currentTimeMillis() - dirtyTime >= SAVE_DELAY_MS) {
-            saveNow();
-        }
+        SlotLockStorage.saveIfDirtyAfterDelay(LOCKED_PLAYER_SLOTS);
     }
 
     public static void saveNow() {
-        if (!dirty) {
-            return;
-        }
-
-        if (saveFile == null) {
-            SlotLockMod.LOG.warn("SlotLock saveNow skipped: saveFile is null");
-            return;
-        }
-
-        if (writeSaveFile()) {
-            dirty = false;
-        }
-    }
-
-    private static boolean writeSaveFile() {
-        File parent = saveFile.getParentFile();
-
-        if (parent != null && !parent.exists()) {
-            parent.mkdirs();
-        }
-
-        Properties properties = new Properties();
-
-        List<Integer> sorted = new ArrayList<Integer>(LOCKED_PLAYER_SLOTS);
-        Collections.sort(sorted);
-
-        StringBuilder builder = new StringBuilder();
-
-        boolean first = true;
-
-        for (Integer index : sorted) {
-            if (!first) {
-                builder.append(",");
-            }
-
-            builder.append(index.intValue());
-            first = false;
-        }
-
-        properties.setProperty("lockedSlots", builder.toString());
-
-        FileOutputStream outputStream = null;
-
-        try {
-            outputStream = new FileOutputStream(saveFile);
-            properties.store(outputStream, "SlotLock locked player inventory slots");
-
-            SlotLockMod.LOG.info("SlotLock saved slots: " + sorted);
-
-            return true;
-        } catch (Exception e) {
-            SlotLockMod.LOG.warn("SlotLock failed to save locked slots: " + e);
-            return false;
-        } finally {
-            if (outputStream != null) {
-                try {
-                    outputStream.close();
-                } catch (Exception ignored) {}
-            }
-        }
+        SlotLockStorage.saveNow(LOCKED_PLAYER_SLOTS);
     }
 
     public static void markDirty() {
-        dirty = true;
-        dirtyTime = System.currentTimeMillis();
+        SlotLockStorage.markDirty();
     }
 
     public static boolean hasAnyLock() {
@@ -801,11 +651,5 @@ public final class SlotLockManager {
         }
 
         return null;
-    }
-
-    private static List<Integer> getSortedLockedSlotsForLog() {
-        List<Integer> sorted = new ArrayList<Integer>(LOCKED_PLAYER_SLOTS);
-        Collections.sort(sorted);
-        return sorted;
     }
 }
