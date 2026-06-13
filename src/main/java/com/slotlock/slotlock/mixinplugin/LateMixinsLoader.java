@@ -12,6 +12,10 @@ import com.gtnewhorizon.gtnhmixins.builders.IMixins;
 @LateMixin
 public class LateMixinsLoader implements ILateMixinLoader {
 
+    static {
+        System.out.println("[SlotLock] LateMixinsLoader loaded");
+    }
+
     @Override
     public String getMixinConfig() {
         return "mixins.slotlock.late.json";

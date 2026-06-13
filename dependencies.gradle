@@ -25,18 +25,43 @@ dependencies {
     devOnlyNonPublishable("com.github.GTNewHorizons:MouseTweaks:2.5.2-GTNH:dev")
 
     // ===== AE2 compat =====
-    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-981-GTNH:dev") {
+    // Match the real play environment:
+    // appliedenergistics2-rv3-beta-977-GTNH.jar
+    compileOnly("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-977-GTNH:dev") {
         transitive = false
     }
-    devOnlyNonPublishable("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-981-GTNH:dev")
+    devOnlyNonPublishable("com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-977-GTNH:dev")
+
+    // ===== AE2 Fluid Crafting compat =====
+    // Match the real play environment:
+    // ae2fc-1.5.88-gtnh.jar
+    compileOnly("com.github.GTNewHorizons:AE2FluidCraft-Rework:1.5.88-gtnh:dev") {
+        transitive = false
+    }
+    devOnlyNonPublishable("com.github.GTNewHorizons:AE2FluidCraft-Rework:1.5.88-gtnh:dev")
+
+    // ===== Wireless Crafting Terminal runtime test =====
+    // Do not copy the normal runtime jar into run/mods.
+    // Use the dev artifact in the deobfuscated development environment.
+    // For now this is runtime-test only; do not compile against it unless we add WCT mixins.
+    devOnlyNonPublishable("com.github.GTNewHorizons:WirelessCraftingTerminal:1.12.16:dev")
+
+    // ===== NotEnoughEnergistics runtime test =====
+    // Runtime-test only for now.
+    devOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughEnergistics:1.7.30:dev")
 
     // ===== ModularUI2 / GT machine GUI compat =====
     compileOnly("com.github.GTNewHorizons:ModularUI2:2.3.74-1.7.10:dev") {
         transitive = false
     }
+    devOnlyNonPublishable("com.github.GTNewHorizons:ModularUI2:2.3.74-1.7.10:dev")
 
     // ===== GT5U runtime test only =====
     devOnlyNonPublishable("com.github.GTNewHorizons:GT5-Unofficial:5.09.52.599:dev") {
         exclude group: "org.antlr", module: "antlr4"
+
+        // GT5U pulls AE2FluidCraft-Rework 1.5.85-gtnh transitively.
+        // Exclude it so the dev runtime uses the explicit 1.5.88-gtnh above.
+        exclude group: "com.github.GTNewHorizons", module: "AE2FluidCraft-Rework"
     }
 }
