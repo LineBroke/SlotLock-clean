@@ -21,7 +21,7 @@ public abstract class MixinInventoryPlayer {
      * 原版找第一个空槽时，跳过锁定槽。
      *
      * 轻量入口：
-     * 让原版 addItemStackToInventory 继续运行，只改变它找到的空槽。
+     * 不重写 addItemStackToInventory，只影响原版找空槽的结果。
      */
     @Inject(method = "getFirstEmptyStack", at = @At("HEAD"), cancellable = true)
     private void slotlock$getFirstUnlockedEmptyStack(CallbackInfoReturnable<Integer> cir) {
@@ -47,7 +47,7 @@ public abstract class MixinInventoryPlayer {
      * 原版找可叠加槽时，跳过锁定槽。
      *
      * 轻量入口：
-     * 不接管 addItemStackToInventory，只让原版找不到锁定槽作为合并目标。
+     * 不重写 addItemStackToInventory，只让原版不会把锁定槽当成合并目标。
      */
     @Inject(method = "storeItemStack", at = @At("HEAD"), cancellable = true)
     private void slotlock$storeItemStackUnlockedOnly(ItemStack stack, CallbackInfoReturnable<Integer> cir) {
@@ -76,15 +76,11 @@ public abstract class MixinInventoryPlayer {
             return false;
         }
 
-        if (source.getItem() != target.getItem()) {
-            return false;
-        }
-
         if (!source.isStackable()) {
             return false;
         }
 
-        if (target.stackSize >= target.getMaxStackSize()) {
+        if (source.getItem() != target.getItem()) {
             return false;
         }
 
@@ -92,6 +88,10 @@ public abstract class MixinInventoryPlayer {
             return false;
         }
 
-        return ItemStack.areItemStackTagsEqual(source, target);
+        if (!ItemStack.areItemStackTagsEqual(source, target)) {
+            return false;
+        }
+
+        return target.stackSize < target.getMaxStackSize();
     }
 }

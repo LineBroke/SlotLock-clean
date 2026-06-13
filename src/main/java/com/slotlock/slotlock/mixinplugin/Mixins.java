@@ -9,7 +9,7 @@ public enum Mixins implements IMixins {
 
     AE2(new MixinBuilder().setPhase(Phase.LATE)
         .addRequiredMod(TargetMods.AE2)
-        .addCommonMixins("ae2.MixinAEBaseContainer")),
+        .addCommonMixins("ae2.MixinAEBaseContainer", "ae2.MixinAEAdaptorPlayerInventory")),
 
     NEI(new MixinBuilder().setPhase(Phase.LATE)
         .addRequiredMod(TargetMods.NEI)

@@ -15,7 +15,8 @@ public final class SlotLockClickHandler {
     public static boolean handleSlotClick(Slot slot, int mouseButton, int clickType) {
 
         /*
-         * Ctrl + 左键：锁定 / 解锁玩家背包槽。
+         * Ctrl + left click:
+         * Toggle locked state for player inventory slots.
          */
         if (isLockKeyDown() && mouseButton == 0
             && clickType == 0
@@ -27,31 +28,23 @@ public final class SlotLockClickHandler {
         }
 
         /*
-         * BogoSorter shortcut 保护。
+         * BogoSorter shortcut guard.
          */
         if (SlotLockBogoShortcutGuard.shouldBlockVanillaClick(mouseButton, clickType)) {
             return true;
         }
 
         /*
-         * 双击收集：
-         * 未锁定槽完全放行。
-         * 锁定槽本身才拦。
-         */
-        if (clickType == 6) {
-            return slot != null && SlotLockManager.isLocked(slot);
-        }
-
-        /*
-         * 拖拽分配物品：
-         * 只在“拖拽添加经过的槽”阶段阻止锁定槽。
+         * Drag splitting.
+         * Only block locked slots during the drag-add phase.
+         * Non-locked slots are fully handled by vanilla / AE / MouseTweaks.
          */
         if (isLockedDragSlot(slot, mouseButton, clickType)) {
             return true;
         }
 
         /*
-         * 数字键换位到锁定 hotbar：禁止。
+         * Number-key swap into locked hotbar slot.
          */
         if (clickType == 2 && mouseButton >= 0 && mouseButton <= 8) {
             if (SlotLockManager.isLockedPlayerIndex(mouseButton)) {
@@ -64,7 +57,8 @@ public final class SlotLockClickHandler {
         }
 
         /*
-         * 直接点击锁定槽：禁止。
+         * Direct interaction with locked slots is blocked.
+         * No special clickType == 6 handling here.
          */
         return SlotLockManager.isLocked(slot);
     }
@@ -74,13 +68,15 @@ public final class SlotLockClickHandler {
             return false;
         }
 
+        /*
+         * Container drag click encoding:
+         * event = mouseButton >> 2 & 3
+         * 0 = drag start
+         * 1 = add slot
+         * 2 = drag end
+         */
         int dragEvent = (mouseButton >> 2) & 3;
 
-        /*
-         * 0 = 开始拖拽
-         * 1 = 添加经过的槽
-         * 2 = 结束拖拽
-         */
         if (dragEvent != 1) {
             return false;
         }
