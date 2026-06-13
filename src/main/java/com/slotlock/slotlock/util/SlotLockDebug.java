@@ -9,20 +9,19 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import com.slotlock.slotlock.SlotLockMod;
+import com.slotlock.slotlock.common.SlotLockConfig;
 import com.slotlock.slotlock.common.SlotLockManager;
 
 public final class SlotLockDebug {
 
-    public static final boolean ENABLED = true;
-
     private SlotLockDebug() {}
 
     public static boolean isEnabled() {
-        return ENABLED;
+        return SlotLockConfig.isDebugEnabled();
     }
 
     public static void log(String message) {
-        if (!ENABLED) {
+        if (!isEnabled()) {
             return;
         }
 
@@ -31,7 +30,7 @@ public final class SlotLockDebug {
 
     public static void dumpCurrentContainer(EntityPlayer player, Container container, Object currentScreen,
         String reason) {
-        if (!ENABLED) {
+        if (!isEnabled()) {
             return;
         }
 
@@ -68,7 +67,7 @@ public final class SlotLockDebug {
     }
 
     public static void dumpPlayerInventory(EntityPlayer player) {
-        if (!ENABLED || player == null || player.inventory == null) {
+        if (!isEnabled() || player == null || player.inventory == null) {
             return;
         }
 
@@ -92,7 +91,7 @@ public final class SlotLockDebug {
     }
 
     public static void dumpContainerSlots(Container container) {
-        if (!ENABLED || container == null || container.inventorySlots == null) {
+        if (!isEnabled() || container == null || container.inventorySlots == null) {
             return;
         }
 

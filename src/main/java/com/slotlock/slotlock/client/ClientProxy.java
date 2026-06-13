@@ -8,6 +8,7 @@ import org.lwjgl.input.Keyboard;
 import com.slotlock.slotlock.SlotLockMod;
 import com.slotlock.slotlock.common.CommonProxy;
 import com.slotlock.slotlock.common.SlotLockAutoMover;
+import com.slotlock.slotlock.common.SlotLockConfig;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -50,15 +51,18 @@ public class ClientProxy extends CommonProxy {
 
         /*
          * Debug tool.
-         * F9 = dump current container
-         * F10 = toggle watch mode
+         * F4 = dump current container
+         * F5 = toggle watch mode
          */
-        FMLCommonHandler.instance()
-            .bus()
-            .register(SlotLockDebugClientHandler.instance());
+        if (SlotLockConfig.isDebugEnabled()) {
+            FMLCommonHandler.instance()
+                .bus()
+                .register(SlotLockDebugClientHandler.instance());
+
+            SlotLockMod.LOG.info("SlotLock debug handler registered");
+        }
 
         SlotLockMod.LOG.info("SlotLock overlay registered");
         SlotLockMod.LOG.info("SlotLock client tick handler registered");
-        SlotLockMod.LOG.info("SlotLock debug handler registered");
     }
 }

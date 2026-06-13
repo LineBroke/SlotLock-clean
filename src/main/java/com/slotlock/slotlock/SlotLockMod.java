@@ -25,19 +25,19 @@ public class SlotLockMod {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        LOG.info("SlotLock MyMod preInit called");
+        LOG.info("SlotLock preInit called");
         proxy.preInit(event);
     }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        LOG.info("SlotLock MyMod init called");
+        LOG.info("SlotLock init called");
         proxy.init(event);
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        LOG.info("SlotLock MyMod postInit called");
+        LOG.info("SlotLock postInit called");
         proxy.postInit(event);
     }
 
