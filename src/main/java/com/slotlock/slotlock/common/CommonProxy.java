@@ -12,6 +12,7 @@ public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         SlotLockMod.LOG.info("SlotLock CommonProxy preInit called");
 
+        SlotLockConfig.load(event.getModConfigurationDirectory());
         SlotLockManager.setSaveFile(event.getModConfigurationDirectory());
 
         SlotLockMod.LOG.info("SlotLock loaded");
