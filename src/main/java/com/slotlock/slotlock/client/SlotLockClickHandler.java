@@ -63,6 +63,22 @@ public final class SlotLockClickHandler {
         return SlotLockManager.isLocked(slot);
     }
 
+    /**
+     * Shared GUI drag-preview rule.
+     *
+     * This is intentionally the same policy as the MouseTweaks RMB hook:
+     *
+     * - current slot locked -> skip
+     * - current slot not locked -> do not touch it
+     *
+     * Do not check stack size.
+     * Do not check whether the stack can merge.
+     * Do not inspect all preview slots.
+     */
+    public static boolean shouldSkipDragPreviewSlot(Slot slot) {
+        return isLockedSlot(slot);
+    }
+
     private static boolean isLockedDragSlot(Slot slot, int mouseButton, int clickType) {
         if (clickType != 5) {
             return false;
@@ -81,6 +97,10 @@ public final class SlotLockClickHandler {
             return false;
         }
 
+        return isLockedSlot(slot);
+    }
+
+    private static boolean isLockedSlot(Slot slot) {
         if (slot == null) {
             return false;
         }
