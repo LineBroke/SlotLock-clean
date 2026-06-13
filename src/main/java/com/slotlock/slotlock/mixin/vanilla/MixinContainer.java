@@ -36,16 +36,6 @@ public abstract class MixinContainer {
             }
         }
 
-        /*
-         * Double-click collect.
-         * If any lock exists, cancelling this is safer because vanilla collect
-         * can pull from many matching slots.
-         */
-        if (mode == 6) {
-            cir.setReturnValue(null);
-            return;
-        }
-
         Container container = (Container) (Object) this;
         Slot slot = SlotLockMergeHelper.getSlot(container, slotId);
 
@@ -80,6 +70,10 @@ public abstract class MixinContainer {
          * mode 4 = drop
          * mode 5 = drag
          * mode 6 = double click collect
+         * 注意：
+         * 不再因为 mode == 6 且有任意锁定槽就取消整个双击收集。
+         * 双击未锁定槽时应该允许原版逻辑继续执行。
+         * 锁定槽能否被原版收集逻辑拿走，由 MixinSlot.canTakeStack 统一保护。
          */
         cir.setReturnValue(null);
     }

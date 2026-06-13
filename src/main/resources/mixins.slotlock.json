@@ -6,7 +6,8 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "vanilla.MixinInventoryPlayer",
-    "vanilla.MixinContainer"
+    "vanilla.MixinContainer",
+    "vanilla.MixinSlot"
   ],
   "client": [
     "vanilla.MixinGuiContainer",

@@ -1,7 +1,6 @@
 package com.slotlock.slotlock.client;
 
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemStack;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -48,21 +47,11 @@ public final class SlotLockClickHandler {
             return true;
         }
 
-        if (slot == null) {
-            return false;
-        }
-
-        /*
-         * 普通点击锁定槽：禁止。
-         */
-        if (SlotLockManager.isLocked(slot)) {
-            return true;
-        }
-
         /*
          * 数字键换位到锁定 hotbar：禁止。
          * clickType == 2 是 hotbar swap。
          * mouseButton 0-8 对应快捷栏 1-9。
+         * 这个判断放在 slot == null 前面，避免特殊 GUI 传入 null slot 时漏掉目标 hotbar 锁。
          */
         if (clickType == 2 && mouseButton >= 0 && mouseButton <= 8) {
             if (SlotLockManager.isLockedPlayerIndex(mouseButton)) {
@@ -70,11 +59,18 @@ public final class SlotLockClickHandler {
             }
         }
 
+        if (slot == null) {
+            return false;
+        }
+
         /*
-         * 双击收集：
-         * 有锁定槽时禁止，避免把锁定槽也卷入收集逻辑。
+         * 普通点击锁定槽：禁止。
+         * 注意：
+         * 双击收集 clickType == 6 不再全局禁止。
+         * 如果双击的是锁定槽，这里会禁止。
+         * 如果双击的是未锁定槽，就让原版逻辑继续执行。
          */
-        if (clickType == 6 && SlotLockManager.hasAnyLock()) {
+        if (SlotLockManager.isLocked(slot)) {
             return true;
         }
 
@@ -98,8 +94,6 @@ public final class SlotLockClickHandler {
          * 0 = 开始拖拽
          * 1 = 添加经过的槽
          * 2 = 结束拖拽
-         * 左键拖拽和右键拖拽在这里都一样：
-         * 只有“添加经过的槽”阶段需要跳过锁定槽。
          */
         int dragEvent = getDragEvent(mouseButton);
 
@@ -113,32 +107,13 @@ public final class SlotLockClickHandler {
     /**
      * GuiContainer mouseClickMove 阶段的拖拽预览判断。
      *
-     * 这个方法统一决定一个 slot 是否应该从客户端 drag preview set 里移除。
-     *
-     * 移除条件：
-     * 1. 锁定槽
-     * 2. 实际不能接收当前鼠标物品的槽，比如已满一组的同类物品槽
+     * 只处理 SlotLock 自己关心的锁定槽。
+     * 不要在这里判断满堆叠、能否合并等原版规则，否则会干涉原版拖拽预览。
      */
-    public static boolean shouldRemoveDragPreviewSlot(Slot slot, ItemStack stackOnMouse) {
-        if (slot == null) {
-            return false;
-        }
-
-        if (shouldSkipLockedDragTarget(slot)) {
-            return true;
-        }
-
-        if (stackOnMouse == null || stackOnMouse.stackSize <= 0) {
-            return false;
-        }
-
-        return !canAcceptAtLeastOneDraggedItem(slot, stackOnMouse);
+    public static boolean shouldSkipDragPreviewSlot(Slot slot) {
+        return shouldSkipLockedDragTarget(slot);
     }
 
-    /**
-     * 单一来源：
-     * 所有“拖拽时是否因为锁定而跳过这个槽”的判断都走这里。
-     */
     private static boolean shouldSkipLockedDragTarget(Slot slot) {
         if (slot == null) {
             return false;
@@ -149,52 +124,6 @@ public final class SlotLockClickHandler {
         }
 
         return SlotLockManager.isLocked(slot);
-    }
-
-    /**
-     * 判断当前 slot 是否真的能接收至少 1 个鼠标上的物品。
-     *
-     * 这一步用于修复客户端拖拽预览：
-     * 已经满 64 个的未锁定槽，不应该出现“短暂停留”的假预览。
-     */
-    private static boolean canAcceptAtLeastOneDraggedItem(Slot slot, ItemStack stackOnMouse) {
-        if (slot == null || stackOnMouse == null || stackOnMouse.stackSize <= 0) {
-            return false;
-        }
-
-        if (!slot.isItemValid(stackOnMouse)) {
-            return false;
-        }
-
-        ItemStack existingStack = slot.getStack();
-
-        if (existingStack == null) {
-            return true;
-        }
-
-        if (!canStacksMerge(stackOnMouse, existingStack)) {
-            return false;
-        }
-
-        int limit = Math.min(stackOnMouse.getMaxStackSize(), slot.getSlotStackLimit());
-
-        return existingStack.stackSize < limit;
-    }
-
-    private static boolean canStacksMerge(ItemStack sourceStack, ItemStack targetStack) {
-        if (sourceStack == null || targetStack == null) {
-            return false;
-        }
-
-        if (sourceStack.getItem() != targetStack.getItem()) {
-            return false;
-        }
-
-        if (sourceStack.getHasSubtypes() && sourceStack.getItemDamage() != targetStack.getItemDamage()) {
-            return false;
-        }
-
-        return ItemStack.areItemStackTagsEqual(sourceStack, targetStack);
     }
 
     private static int getDragEvent(int mouseButton) {
