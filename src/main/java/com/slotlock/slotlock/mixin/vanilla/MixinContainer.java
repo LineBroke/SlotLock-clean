@@ -6,7 +6,6 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -18,45 +17,6 @@ import com.slotlock.slotlock.common.SlotLockMergeHelper;
 @Mixin(Container.class)
 public abstract class MixinContainer {
 
-    @Unique
-    private static final ThreadLocal<Integer> slotlock$doubleClickCollectDepth = new ThreadLocal<Integer>() {
-
-        @Override
-        protected Integer initialValue() {
-            return Integer.valueOf(0);
-        }
-    };
-
-    @Inject(method = "slotClick", at = @At("HEAD"))
-    private void slotlock$beginDoubleClickCollect(int slotId, int mouseButton, int mode, EntityPlayer player,
-        CallbackInfoReturnable<ItemStack> cir) {
-        if (mode != 6) {
-            return;
-        }
-
-        int depth = slotlock$doubleClickCollectDepth.get()
-            .intValue();
-
-        slotlock$doubleClickCollectDepth.set(Integer.valueOf(depth + 1));
-    }
-
-    @Inject(method = "slotClick", at = @At("RETURN"))
-    private void slotlock$endDoubleClickCollect(int slotId, int mouseButton, int mode, EntityPlayer player,
-        CallbackInfoReturnable<ItemStack> cir) {
-        if (mode != 6) {
-            return;
-        }
-
-        int depth = slotlock$doubleClickCollectDepth.get()
-            .intValue();
-
-        if (depth <= 1) {
-            slotlock$doubleClickCollectDepth.set(Integer.valueOf(0));
-        } else {
-            slotlock$doubleClickCollectDepth.set(Integer.valueOf(depth - 1));
-        }
-    }
-
     @Inject(method = "slotClick", at = @At("HEAD"), cancellable = true)
     private void slotlock$preventDirectClickLockedSlot(int slotId, int mouseButton, int mode, EntityPlayer player,
         CallbackInfoReturnable<ItemStack> cir) {
@@ -65,8 +25,9 @@ public abstract class MixinContainer {
         }
 
         /*
-         * Double-click collect:
-         * Do not block vanilla mode 6.
+         * 双击收集同类物品：完全交给原版。
+         * 不在 Container 层取消 mode 6。
+         * 先恢复原版行为。
          */
         if (mode == 6) {
             return;
@@ -103,17 +64,16 @@ public abstract class MixinContainer {
         }
 
         /*
-         * Only block operations whose direct target is a locked slot.
+         * 只阻止目标就是锁定槽的操作。
          */
         cir.setReturnValue(null);
     }
 
     /**
-     * Replaces Container.mergeItemStack when SlotLock has active locks.
+     * Shift-click 合并保护。
      *
-     * Important:
-     * Do not replace mergeItemStack while vanilla double-click collect is running.
-     * Double-click collect is a delicate vanilla path and should stay untouched.
+     * 只在 merge 范围里真的包含锁定槽时才接管。
+     * 否则完全交给原版 mergeItemStack。
      */
     @Inject(method = "mergeItemStack", at = @At("HEAD"), cancellable = true)
     private void slotlock$mergeItemStackSkippingLockedSlots(ItemStack stack, int startIndex, int endIndex,
@@ -122,11 +82,11 @@ public abstract class MixinContainer {
             return;
         }
 
-        if (slotlock$isDoubleClickCollecting()) {
+        Container container = (Container) (Object) this;
+
+        if (!hasLockedSlotInRange(container, startIndex, endIndex)) {
             return;
         }
-
-        Container container = (Container) (Object) this;
 
         cir.setReturnValue(
             Boolean.valueOf(
@@ -134,9 +94,26 @@ public abstract class MixinContainer {
                     .mergeItemStackSkippingLockedSlots(container, stack, startIndex, endIndex, reverseDirection)));
     }
 
-    @Unique
-    private static boolean slotlock$isDoubleClickCollecting() {
-        return slotlock$doubleClickCollectDepth.get()
-            .intValue() > 0;
+    private static boolean hasLockedSlotInRange(Container container, int startIndex, int endIndex) {
+        if (container == null || container.inventorySlots == null) {
+            return false;
+        }
+
+        int start = Math.max(0, startIndex);
+        int end = Math.min(endIndex, container.inventorySlots.size());
+
+        for (int i = start; i < end; i++) {
+            Object object = container.inventorySlots.get(i);
+
+            if (!(object instanceof Slot)) {
+                continue;
+            }
+
+            if (SlotLockManager.isLocked((Slot) object)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

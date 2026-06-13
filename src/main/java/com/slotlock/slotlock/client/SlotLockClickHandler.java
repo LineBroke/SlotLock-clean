@@ -34,8 +34,19 @@ public final class SlotLockClickHandler {
         }
 
         /*
-         * clickType == 5 是 Container 层的拖拽分配。
-         * 这里只阻止锁定槽，不判断满堆叠、不判断能否合并。
+         * 双击收集同类物品：完全交给原版。
+         * 不在 GUI 层判断锁定槽。
+         * 不在 GUI 层取消 mode 6。
+         * 这是为了恢复原版双击收集逻辑。
+         */
+        if (clickType == 6) {
+            return false;
+        }
+
+        /*
+         * 拖拽分配物品。
+         * 只在“拖拽添加经过的槽”阶段阻止锁定槽。
+         * 非锁定槽完全交给原版 / AE / MouseTweaks。
          */
         if (isLockedDragSlot(slot, mouseButton, clickType)) {
             return true;
@@ -55,50 +66,29 @@ public final class SlotLockClickHandler {
         }
 
         /*
-         * 双击未锁定槽必须放行。
-         * 双击锁定槽本身仍然禁止。
-         */
-        if (clickType == 6) {
-            return SlotLockManager.isLocked(slot);
-        }
-
-        /*
          * 直接点击锁定槽：禁止。
          */
         return SlotLockManager.isLocked(slot);
     }
 
-    public static boolean isLockedDragSlot(Slot slot, int mouseButton, int clickType) {
+    private static boolean isLockedDragSlot(Slot slot, int mouseButton, int clickType) {
         if (clickType != 5) {
             return false;
         }
 
-        int dragEvent = getDragEvent(mouseButton);
-
         /*
+         * Container drag click 编码：
+         * event = mouseButton >> 2 & 3
          * 0 = 开始拖拽
          * 1 = 添加经过的槽
          * 2 = 结束拖拽
          */
+        int dragEvent = (mouseButton >> 2) & 3;
+
         if (dragEvent != 1) {
             return false;
         }
 
-        return shouldSkipDragSlot(slot);
-    }
-
-    /**
-     * GuiContainer.mouseClickMove 阶段使用。
-     *
-     * 左键拖拽和右键拖拽保持同一套逻辑：
-     * 当前滑过的槽如果是锁定槽，就跳过；
-     * 否则完全交给原版 / AE / MouseTweaks。
-     */
-    public static boolean shouldSkipDragPreviewSlot(Slot slot) {
-        return shouldSkipDragSlot(slot);
-    }
-
-    private static boolean shouldSkipDragSlot(Slot slot) {
         if (slot == null) {
             return false;
         }
@@ -108,10 +98,6 @@ public final class SlotLockClickHandler {
         }
 
         return SlotLockManager.isLocked(slot);
-    }
-
-    private static int getDragEvent(int mouseButton) {
-        return (mouseButton >> 2) & 3;
     }
 
     private static boolean isLockKeyDown() {
