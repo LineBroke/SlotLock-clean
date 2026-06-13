@@ -35,7 +35,7 @@ addon.local.gradle.kts
 addon.late.local.gradle
 addon.late.local.gradle.kts
 layout.json
-ExampleMod1.7.10.code-workspace
+*.code-workspace
 .gradle/
 build/
 run/
