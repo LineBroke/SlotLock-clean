@@ -42,3 +42,4 @@ run/
 out/
 .idea/
 *.iml
+release-test/
