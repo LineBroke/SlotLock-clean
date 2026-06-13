@@ -17,8 +17,6 @@ public final class SlotLockClickHandler {
 
         /*
          * Ctrl + 左键：锁定 / 解锁玩家背包槽。
-         * 这个逻辑必须放在 Bogo guard 前面，
-         * 否则快速 Alt+左键后的保护时间内可能无法锁定/解锁。
          */
         if (isLockKeyDown() && mouseButton == 0
             && clickType == 0
@@ -30,17 +28,15 @@ public final class SlotLockClickHandler {
         }
 
         /*
-         * BogoSorter shortcut 保护：
-         * 防止快速 Alt+左键后，shortcut 没有完整消费点击，
-         * 导致原版左键继续执行，把一组物品拿到鼠标指针上。
+         * BogoSorter shortcut 保护。
          */
         if (SlotLockBogoShortcutGuard.shouldBlockVanillaClick(mouseButton, clickType)) {
             return true;
         }
 
         /*
-         * clickType == 5 是拖拽分配物品。
-         * 这里只拦锁定槽，不重写原版拖拽分配逻辑。
+         * clickType == 5 是 Container 层的拖拽分配。
+         * 这里只阻止锁定槽，不改原版拖拽分配规则。
          */
         if (isLockedDragSlot(slot, mouseButton, clickType)) {
             return true;
@@ -48,8 +44,6 @@ public final class SlotLockClickHandler {
 
         /*
          * 数字键换位到锁定 hotbar：禁止。
-         * clickType == 2 是 hotbar swap。
-         * mouseButton 0-8 对应快捷栏 1-9。
          */
         if (clickType == 2 && mouseButton >= 0 && mouseButton <= 8) {
             if (SlotLockManager.isLockedPlayerIndex(mouseButton)) {
@@ -62,10 +56,15 @@ public final class SlotLockClickHandler {
         }
 
         /*
+         * 双击未锁定槽必须放行。
+         * 双击锁定槽本身仍然禁止。
+         */
+        if (clickType == 6) {
+            return SlotLockManager.isLocked(slot);
+        }
+
+        /*
          * 直接点击锁定槽：禁止。
-         * 双击未锁定槽不再被全局禁止。
-         * 如果原版双击收集过程中试图递归点击锁定槽，
-         * MixinContainer.slotClick 会挡住锁定槽本身。
          */
         return SlotLockManager.isLocked(slot);
     }
@@ -89,15 +88,19 @@ public final class SlotLockClickHandler {
         return isLockedDragTarget(slot);
     }
 
-    public static boolean shouldRemoveDragPreviewSlot(Slot slot, ItemStack stackOnMouse) {
+    /**
+     * GuiContainer.mouseClickMove 阶段使用。
+     *
+     * 这个方法只判断“当前鼠标滑过的槽”是否应该跳过。
+     * 不扫描整个 drag preview set。
+     *
+     * 左键和右键都走这里，逻辑保持一致。
+     */
+    public static boolean shouldSkipDragPreviewSlot(Slot slot, ItemStack stackOnMouse) {
         if (isLockedDragTarget(slot)) {
             return true;
         }
 
-        /*
-         * 下面只修客户端拖拽预览。
-         * 不改 Container.slotClick，不改原版真实分配逻辑。
-         */
         if (slot == null || stackOnMouse == null || stackOnMouse.stackSize <= 0) {
             return false;
         }

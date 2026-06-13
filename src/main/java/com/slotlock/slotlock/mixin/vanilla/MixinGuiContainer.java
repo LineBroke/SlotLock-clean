@@ -1,6 +1,5 @@
 package com.slotlock.slotlock.mixin.vanilla;
 
-import java.util.Iterator;
 import java.util.Set;
 
 import net.minecraft.client.Minecraft;
@@ -22,10 +21,8 @@ public abstract class MixinGuiContainer {
 
     /*
      * GuiContainer drag-splitting preview slot set.
-     * 这里只处理客户端预览：
-     * - 锁定槽不显示拖拽预览
-     * - 已满一组、不能接收物品的槽不显示假预览
-     * 不重写 Container 的真实拖拽分配逻辑。
+     * 这里只在必要时移除“当前滑过的槽”。
+     * 不再遍历整个 set，避免干涉原版左键拖拽预览。
      */
     @Shadow
     @Final
@@ -38,60 +35,56 @@ public abstract class MixinGuiContainer {
     @Shadow
     private void func_146980_g() {}
 
+    /*
+     * Gets the slot currently under the mouse.
+     */
+    @Shadow
+    private Slot getSlotAtPosition(int mouseX, int mouseY) {
+        return null;
+    }
+
     /**
      * 1.7.10 GuiContainer 的核心 slot 点击处理方法。
-     *
-     * clickType 常见值：
-     * 0 = 普通点击
-     * 1 = shift-click
-     * 2 = 数字键换位 hotbar swap
-     * 3 = creative middle click
-     * 4 = Q 丢弃
-     * 5 = 拖拽分配物品
-     * 6 = 双击收集同类物品
      */
     @Inject(method = "handleMouseClick", at = @At("HEAD"), cancellable = true)
     private void slotlock$handleMouseClick(Slot slot, int slotId, int mouseButton, int clickType, CallbackInfo ci) {
         if (SlotLockClickHandler.handleSlotClick(slot, mouseButton, clickType)) {
-            sanitizeDragPreviewSlots();
+            removeDragPreviewSlot(slot);
             ci.cancel();
         }
     }
 
     /**
-     * 清理拖拽预览集合。
+     * 照右键拖拽的思路处理左键拖拽：
      *
-     * 这个方法只影响客户端画面上的 drag preview。
-     * 真正的物品移动仍然交给原版 Container。
+     * 鼠标滑过一个不该参与拖拽的槽时，直接跳过当前槽。
+     * 不扫描整个 field_147008_s。
+     * 不改 Container 真实分配逻辑。
      */
-    @Inject(method = "mouseClickMove", at = @At("TAIL"))
-    private void slotlock$sanitizeDragPreviewSlots(int mouseX, int mouseY, int mouseButton, long timeSinceLastClick,
+    @Inject(method = "mouseClickMove", at = @At("HEAD"), cancellable = true)
+    private void slotlock$skipInvalidDragPreviewSlot(int mouseX, int mouseY, int mouseButton, long timeSinceLastClick,
         CallbackInfo ci) {
-        sanitizeDragPreviewSlots();
-    }
+        Slot slot = this.getSlotAtPosition(mouseX, mouseY);
+        ItemStack stackOnMouse = getStackOnMouse();
 
-    private void sanitizeDragPreviewSlots() {
-        if (this.field_147008_s == null || this.field_147008_s.isEmpty()) {
+        if (!SlotLockClickHandler.shouldSkipDragPreviewSlot(slot, stackOnMouse)) {
             return;
         }
 
-        ItemStack stackOnMouse = getStackOnMouse();
+        removeDragPreviewSlot(slot);
+        ci.cancel();
+    }
 
-        boolean changed = false;
-        Iterator<Slot> iterator = this.field_147008_s.iterator();
-
-        while (iterator.hasNext()) {
-            Slot slot = iterator.next();
-
-            if (!SlotLockClickHandler.shouldRemoveDragPreviewSlot(slot, stackOnMouse)) {
-                continue;
-            }
-
-            iterator.remove();
-            changed = true;
+    private void removeDragPreviewSlot(Slot slot) {
+        if (slot == null) {
+            return;
         }
 
-        if (changed) {
+        if (this.field_147008_s == null) {
+            return;
+        }
+
+        if (this.field_147008_s.remove(slot)) {
             this.func_146980_g();
         }
     }

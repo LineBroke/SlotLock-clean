@@ -25,6 +25,15 @@ public abstract class MixinContainer {
         }
 
         /*
+         * Double-click collect.
+         * Do not touch vanilla mode 6 here.
+         * The previous heavy interception broke vanilla double-click collection.
+         */
+        if (mode == 6) {
+            return;
+        }
+
+        /*
          * Number-key swap into locked hotbar slot.
          * mode 2 = hotbar key swap
          * mouseButton 0-8 = target hotbar index
@@ -49,17 +58,13 @@ public abstract class MixinContainer {
 
         /*
          * AutoMover 需要一个内部 bypass。
-         * 其他所有直接操作锁定槽的行为都应该被挡住。
          */
         if (mode == 0 && mouseButton == 0 && SlotLockInternalBypass.isAllowed(slot)) {
             return;
         }
 
         /*
-         * 只阻止“目标就是锁定槽”的操作。
-         * 不再因为 mode == 6 且存在任意锁定槽就取消整个双击收集。
-         * 双击未锁定槽时，让原版逻辑继续运行。
-         * 如果原版双击收集递归点击到锁定槽，这里会挡住那个锁定槽本身。
+         * 只阻止目标就是锁定槽的操作。
          */
         cir.setReturnValue(null);
     }
