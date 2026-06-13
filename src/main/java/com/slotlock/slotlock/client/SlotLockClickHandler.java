@@ -1,6 +1,7 @@
 package com.slotlock.slotlock.client;
 
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -39,9 +40,7 @@ public final class SlotLockClickHandler {
 
         /*
          * clickType == 5 是拖拽分配物品。
-         * 左键拖拽和右键拖拽都走同一个判断：
-         * 只要当前拖拽事件是在“添加经过的槽”阶段，并且该槽被锁定，
-         * 就跳过这个槽。
+         * 这里只拦锁定槽，不重写原版拖拽分配逻辑。
          */
         if (isLockedDragSlot(slot, mouseButton, clickType)) {
             return true;
@@ -51,7 +50,6 @@ public final class SlotLockClickHandler {
          * 数字键换位到锁定 hotbar：禁止。
          * clickType == 2 是 hotbar swap。
          * mouseButton 0-8 对应快捷栏 1-9。
-         * 这个判断放在 slot == null 前面，避免特殊 GUI 传入 null slot 时漏掉目标 hotbar 锁。
          */
         if (clickType == 2 && mouseButton >= 0 && mouseButton <= 8) {
             if (SlotLockManager.isLockedPlayerIndex(mouseButton)) {
@@ -64,57 +62,50 @@ public final class SlotLockClickHandler {
         }
 
         /*
-         * 普通点击锁定槽：禁止。
-         * 注意：
-         * 双击收集 clickType == 6 不再全局禁止。
-         * 如果双击的是锁定槽，这里会禁止。
-         * 如果双击的是未锁定槽，就让原版逻辑继续执行。
+         * 直接点击锁定槽：禁止。
+         * 双击未锁定槽不再被全局禁止。
+         * 如果原版双击收集过程中试图递归点击锁定槽，
+         * MixinContainer.slotClick 会挡住锁定槽本身。
          */
-        if (SlotLockManager.isLocked(slot)) {
-            return true;
-        }
-
-        return false;
+        return SlotLockManager.isLocked(slot);
     }
 
-    /**
-     * Container click 阶段的拖拽锁槽判断。
-     *
-     * 这里处理的是 Minecraft 已经编码过的 clickType/mouseButton：
-     * clickType == 5 表示拖拽分配物品。
-     */
     public static boolean isLockedDragSlot(Slot slot, int mouseButton, int clickType) {
         if (clickType != 5) {
             return false;
         }
 
+        int dragEvent = getDragEvent(mouseButton);
+
         /*
-         * Container drag click 编码：
-         * event = mouseButton >> 2 & 3
          * 0 = 开始拖拽
          * 1 = 添加经过的槽
          * 2 = 结束拖拽
          */
-        int dragEvent = getDragEvent(mouseButton);
-
         if (dragEvent != 1) {
             return false;
         }
 
-        return shouldSkipLockedDragTarget(slot);
+        return isLockedDragTarget(slot);
     }
 
-    /**
-     * GuiContainer mouseClickMove 阶段的拖拽预览判断。
-     *
-     * 只处理 SlotLock 自己关心的锁定槽。
-     * 不要在这里判断满堆叠、能否合并等原版规则，否则会干涉原版拖拽预览。
-     */
-    public static boolean shouldSkipDragPreviewSlot(Slot slot) {
-        return shouldSkipLockedDragTarget(slot);
+    public static boolean shouldRemoveDragPreviewSlot(Slot slot, ItemStack stackOnMouse) {
+        if (isLockedDragTarget(slot)) {
+            return true;
+        }
+
+        /*
+         * 下面只修客户端拖拽预览。
+         * 不改 Container.slotClick，不改原版真实分配逻辑。
+         */
+        if (slot == null || stackOnMouse == null || stackOnMouse.stackSize <= 0) {
+            return false;
+        }
+
+        return !canAcceptAtLeastOneDraggedItem(slot, stackOnMouse);
     }
 
-    private static boolean shouldSkipLockedDragTarget(Slot slot) {
+    private static boolean isLockedDragTarget(Slot slot) {
         if (slot == null) {
             return false;
         }
@@ -124,6 +115,50 @@ public final class SlotLockClickHandler {
         }
 
         return SlotLockManager.isLocked(slot);
+    }
+
+    private static boolean canAcceptAtLeastOneDraggedItem(Slot slot, ItemStack stackOnMouse) {
+        if (slot == null || stackOnMouse == null || stackOnMouse.stackSize <= 0) {
+            return false;
+        }
+
+        if (!slot.isItemValid(stackOnMouse)) {
+            return false;
+        }
+
+        int limit = Math.min(stackOnMouse.getMaxStackSize(), slot.getSlotStackLimit());
+
+        if (limit <= 0) {
+            return false;
+        }
+
+        ItemStack existingStack = slot.getStack();
+
+        if (existingStack == null) {
+            return true;
+        }
+
+        if (!canStacksMerge(stackOnMouse, existingStack)) {
+            return false;
+        }
+
+        return existingStack.stackSize < limit;
+    }
+
+    private static boolean canStacksMerge(ItemStack sourceStack, ItemStack targetStack) {
+        if (sourceStack == null || targetStack == null) {
+            return false;
+        }
+
+        if (sourceStack.getItem() != targetStack.getItem()) {
+            return false;
+        }
+
+        if (sourceStack.getHasSubtypes() && sourceStack.getItemDamage() != targetStack.getItemDamage()) {
+            return false;
+        }
+
+        return ItemStack.areItemStackTagsEqual(sourceStack, targetStack);
     }
 
     private static int getDragEvent(int mouseButton) {

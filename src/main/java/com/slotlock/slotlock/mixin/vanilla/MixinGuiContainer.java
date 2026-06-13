@@ -1,9 +1,12 @@
 package com.slotlock.slotlock.mixin.vanilla;
 
+import java.util.Iterator;
 import java.util.Set;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,8 +22,10 @@ public abstract class MixinGuiContainer {
 
     /*
      * GuiContainer drag-splitting preview slot set.
-     * Vanilla 1.7.10 会在 mouseClickMove 里把鼠标划过的 slot 加入这个 set。
-     * 如果锁定槽进入这个 set，左键拖拽时就会看到物品短暂停在锁定槽里。
+     * 这里只处理客户端预览：
+     * - 锁定槽不显示拖拽预览
+     * - 已满一组、不能接收物品的槽不显示假预览
+     * 不重写 Container 的真实拖拽分配逻辑。
      */
     @Shadow
     @Final
@@ -32,14 +37,6 @@ public abstract class MixinGuiContainer {
      */
     @Shadow
     private void func_146980_g() {}
-
-    /*
-     * Gets the slot currently under the mouse.
-     */
-    @Shadow
-    private Slot getSlotAtPosition(int mouseX, int mouseY) {
-        return null;
-    }
 
     /**
      * 1.7.10 GuiContainer 的核心 slot 点击处理方法。
@@ -56,40 +53,56 @@ public abstract class MixinGuiContainer {
     @Inject(method = "handleMouseClick", at = @At("HEAD"), cancellable = true)
     private void slotlock$handleMouseClick(Slot slot, int slotId, int mouseButton, int clickType, CallbackInfo ci) {
         if (SlotLockClickHandler.handleSlotClick(slot, mouseButton, clickType)) {
-            removeDragPreviewSlot(slot);
+            sanitizeDragPreviewSlots();
             ci.cancel();
         }
     }
 
     /**
-     * 只清理锁定槽的客户端拖拽预览。
+     * 清理拖拽预览集合。
      *
-     * 不处理满堆叠、不兼容物品等原版规则。
-     * 那些应该继续交给原版 GuiContainer 自己处理。
+     * 这个方法只影响客户端画面上的 drag preview。
+     * 真正的物品移动仍然交给原版 Container。
      */
     @Inject(method = "mouseClickMove", at = @At("TAIL"))
-    private void slotlock$removeLockedSlotFromDragPreview(int mouseX, int mouseY, int mouseButton,
-        long timeSinceLastClick, CallbackInfo ci) {
-        Slot slot = this.getSlotAtPosition(mouseX, mouseY);
-
-        if (!SlotLockClickHandler.shouldSkipDragPreviewSlot(slot)) {
-            return;
-        }
-
-        removeDragPreviewSlot(slot);
+    private void slotlock$sanitizeDragPreviewSlots(int mouseX, int mouseY, int mouseButton, long timeSinceLastClick,
+        CallbackInfo ci) {
+        sanitizeDragPreviewSlots();
     }
 
-    private void removeDragPreviewSlot(Slot slot) {
-        if (slot == null) {
+    private void sanitizeDragPreviewSlots() {
+        if (this.field_147008_s == null || this.field_147008_s.isEmpty()) {
             return;
         }
 
-        if (this.field_147008_s == null) {
-            return;
+        ItemStack stackOnMouse = getStackOnMouse();
+
+        boolean changed = false;
+        Iterator<Slot> iterator = this.field_147008_s.iterator();
+
+        while (iterator.hasNext()) {
+            Slot slot = iterator.next();
+
+            if (!SlotLockClickHandler.shouldRemoveDragPreviewSlot(slot, stackOnMouse)) {
+                continue;
+            }
+
+            iterator.remove();
+            changed = true;
         }
 
-        if (this.field_147008_s.remove(slot)) {
+        if (changed) {
             this.func_146980_g();
         }
+    }
+
+    private static ItemStack getStackOnMouse() {
+        Minecraft minecraft = Minecraft.getMinecraft();
+
+        if (minecraft == null || minecraft.thePlayer == null || minecraft.thePlayer.inventory == null) {
+            return null;
+        }
+
+        return minecraft.thePlayer.inventory.getItemStack();
     }
 }

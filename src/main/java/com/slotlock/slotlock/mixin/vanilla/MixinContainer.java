@@ -48,32 +48,18 @@ public abstract class MixinContainer {
         }
 
         /*
-         * IMPORTANT:
-         * Previously, left click on a locked slot was allowed here for AutoMover.
-         * That left a hole:
-         * NEI recipe fill / overlay transfer can bypass GuiContainer and call
-         * Container.slotClick directly with mode 0, mouseButton 0.
-         * So locked slots must block normal left click here too.
-         * Only SlotLockAutoMover may temporarily bypass this through
-         * SlotLockInternalBypass.
+         * AutoMover 需要一个内部 bypass。
+         * 其他所有直接操作锁定槽的行为都应该被挡住。
          */
         if (mode == 0 && mouseButton == 0 && SlotLockInternalBypass.isAllowed(slot)) {
             return;
         }
 
         /*
-         * All direct interaction with locked slots is blocked:
-         * mode 0 = normal left/right click
-         * mode 1 = shift click
-         * mode 2 = hotbar swap
-         * mode 3 = pick block / middle click style action
-         * mode 4 = drop
-         * mode 5 = drag
-         * mode 6 = double click collect
-         * 注意：
-         * 不再因为 mode == 6 且有任意锁定槽就取消整个双击收集。
-         * 双击未锁定槽时应该允许原版逻辑继续执行。
-         * 锁定槽能否被原版收集逻辑拿走，由 MixinSlot.canTakeStack 统一保护。
+         * 只阻止“目标就是锁定槽”的操作。
+         * 不再因为 mode == 6 且存在任意锁定槽就取消整个双击收集。
+         * 双击未锁定槽时，让原版逻辑继续运行。
+         * 如果原版双击收集递归点击到锁定槽，这里会挡住那个锁定槽本身。
          */
         cir.setReturnValue(null);
     }
