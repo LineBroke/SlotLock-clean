@@ -5,6 +5,7 @@
   "refmap": "mixins.slotlock.refmap.json",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "vanilla.MixinSlot",
     "vanilla.MixinInventoryPlayer",
     "vanilla.MixinContainer"
   ],
@@ -13,7 +14,8 @@
     "vanilla.MixinGuiContainerCreative",
     "vanilla.MixinEntityPlayer",
     "vanilla.MixinGuiContainerRender",
-    "vanilla.MixinGuiIngame"
+    "vanilla.MixinGuiIngame",
+    "vanilla.MixinPlayerControllerMP"
   ],
   "server": []
 }

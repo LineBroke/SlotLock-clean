@@ -52,7 +52,7 @@ public final class SlotLockManager {
     public static boolean isLocked(Slot slot) {
         int playerIndex = getPlayerSlotIndex(slot);
 
-        if (playerIndex < 0 || playerIndex > 35) {
+        if (playerIndex < SlotLockConstants.HOTBAR_START || playerIndex > SlotLockConstants.PLAYER_INV_MAX) {
             return false;
         }
 
@@ -78,7 +78,7 @@ public final class SlotLockManager {
 
         int current = player.inventory.currentItem;
 
-        if (current < 0 || current > 8) {
+        if (current < SlotLockConstants.HOTBAR_START || current > SlotLockConstants.HOTBAR_END) {
             return false;
         }
 
@@ -88,7 +88,7 @@ public final class SlotLockManager {
     public static void toggle(Slot slot) {
         int playerIndex = getPlayerSlotIndex(slot);
 
-        if (playerIndex < 0 || playerIndex > 35) {
+        if (playerIndex < SlotLockConstants.HOTBAR_START || playerIndex > SlotLockConstants.PLAYER_INV_MAX) {
             return;
         }
 
@@ -111,7 +111,7 @@ public final class SlotLockManager {
     }
 
     public static void togglePlayerIndex(int index) {
-        if (index < 0 || index > 35) {
+        if (index < SlotLockConstants.HOTBAR_START || index > SlotLockConstants.PLAYER_INV_MAX) {
             return;
         }
 
@@ -130,7 +130,7 @@ public final class SlotLockManager {
     }
 
     public static void markEmptyWhenLocked(int playerIndex) {
-        if (playerIndex < 0 || playerIndex > 35) {
+        if (playerIndex < SlotLockConstants.HOTBAR_START || playerIndex > SlotLockConstants.PLAYER_INV_MAX) {
             return;
         }
 

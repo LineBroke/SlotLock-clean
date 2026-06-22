@@ -5,6 +5,7 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
+import com.slotlock.slotlock.common.SlotLockConstants;
 import com.slotlock.slotlock.common.SlotLockManager;
 
 import codechicken.nei.NEIClientUtils;
@@ -64,9 +65,9 @@ public final class SlotLockNEICompat {
         }
 
         /*
-         * 优先主背包 9-35。
+         * 优先主背包。
          */
-        for (int i = 9; i < 36; i++) {
+        for (int i = SlotLockConstants.MAIN_INV_START; i <= SlotLockConstants.MAIN_INV_END; i++) {
             mergeIntoPlayerIndex(container, i, remaining);
 
             if (remaining.stackSize <= 0) {
@@ -75,9 +76,9 @@ public final class SlotLockNEICompat {
         }
 
         /*
-         * 最后快捷栏 0-8。
+         * 最后快捷栏。
          */
-        for (int i = 0; i < 9; i++) {
+        for (int i = SlotLockConstants.HOTBAR_START; i <= SlotLockConstants.HOTBAR_END; i++) {
             mergeIntoPlayerIndex(container, i, remaining);
 
             if (remaining.stackSize <= 0) {
@@ -133,9 +134,9 @@ public final class SlotLockNEICompat {
         }
 
         /*
-         * 优先主背包 9-35。
+         * 优先主背包。
          */
-        for (int i = 9; i < 36; i++) {
+        for (int i = SlotLockConstants.MAIN_INV_START; i <= SlotLockConstants.MAIN_INV_END; i++) {
             putIntoPlayerIndex(container, i, remaining);
 
             if (remaining.stackSize <= 0) {
@@ -144,9 +145,9 @@ public final class SlotLockNEICompat {
         }
 
         /*
-         * 最后快捷栏 0-8。
+         * 最后快捷栏。
          */
-        for (int i = 0; i < 9; i++) {
+        for (int i = SlotLockConstants.HOTBAR_START; i <= SlotLockConstants.HOTBAR_END; i++) {
             putIntoPlayerIndex(container, i, remaining);
 
             if (remaining.stackSize <= 0) {

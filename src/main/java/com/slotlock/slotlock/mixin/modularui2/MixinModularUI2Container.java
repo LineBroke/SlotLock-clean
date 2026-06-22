@@ -11,7 +11,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.cleanroommc.modularui.screen.ModularContainer;
+import com.slotlock.slotlock.common.SlotLockConstants;
 import com.slotlock.slotlock.common.SlotLockManager;
+import com.slotlock.slotlock.common.SlotLockMergeHelper;
 
 @Mixin(value = ModularContainer.class, remap = false)
 public abstract class MixinModularUI2Container {
@@ -23,26 +25,18 @@ public abstract class MixinModularUI2Container {
             return;
         }
 
-        /*
-         * Double-click collect:
-         * Do not cancel mode 6 globally.
-         * Only direct locked-slot interactions should be blocked below.
-         */
         if (mode == 6) {
             return;
         }
 
-        /*
-         * Number-key swap into locked hotbar slot.
-         */
-        if (mode == 2 && mouseButton >= 0 && mouseButton <= 8) {
+        if (mode == 2 && mouseButton >= SlotLockConstants.HOTBAR_START && mouseButton <= SlotLockConstants.HOTBAR_END) {
             if (SlotLockManager.isLockedPlayerIndex(mouseButton)) {
                 cir.setReturnValue(null);
                 return;
             }
         }
 
-        Slot slot = slotlock$getSlot(slotId);
+        Slot slot = SlotLockMergeHelper.getSlot((Container) (Object) this, slotId);
 
         if (slot == null) {
             return;
@@ -56,34 +50,10 @@ public abstract class MixinModularUI2Container {
     @Inject(method = "transferStackInSlot", at = @At("HEAD"), cancellable = true, remap = false)
     private void slotlock$preventTransferFromLockedSlot(EntityPlayer player, int index,
         CallbackInfoReturnable<ItemStack> cir) {
-        Slot slot = slotlock$getSlot(index);
+        Slot slot = SlotLockMergeHelper.getSlot((Container) (Object) this, index);
 
         if (SlotLockManager.isLocked(slot)) {
             cir.setReturnValue(null);
         }
-    }
-
-    private Slot slotlock$getSlot(int slotId) {
-        if (slotId < 0) {
-            return null;
-        }
-
-        Container self = (Container) (Object) this;
-
-        if (self.inventorySlots == null) {
-            return null;
-        }
-
-        if (slotId >= self.inventorySlots.size()) {
-            return null;
-        }
-
-        Object object = self.inventorySlots.get(slotId);
-
-        if (!(object instanceof Slot)) {
-            return null;
-        }
-
-        return (Slot) object;
     }
 }

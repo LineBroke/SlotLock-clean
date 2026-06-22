@@ -20,6 +20,22 @@ public final class SlotLockSlotResolver {
     private static final Map<Slot, Integer> SLOT_INDEX_CACHE = Collections
         .synchronizedMap(new WeakHashMap<Slot, Integer>());
 
+    // === ModularUI 2 类名常量 ===
+    private static final String MUI2_SLOT_HANDLER = "com.cleanroommc.modularui.utils.item.SlotItemHandler";
+    private static final String MUI2_ARMOR_WRAPPER = "com.cleanroommc.modularui.utils.item.PlayerArmorInvWrapper";
+    private static final String MUI2_MAIN_WRAPPER = "com.cleanroommc.modularui.utils.item.PlayerMainInvWrapper";
+    private static final String MUI2_PLAYER_WRAPPER = "com.cleanroommc.modularui.utils.item.PlayerInvWrapper";
+    private static final String MUI2_INV_WRAPPER = "com.cleanroommc.modularui.utils.item.InvWrapper";
+    private static final String MUI2_RANGED_WRAPPER = "com.cleanroommc.modularui.utils.item.RangedWrapper";
+
+    // === ModularUI 1 (GTNH) 类名常量 ===
+    private static final String MUI1_SLOT_HANDLER = "com.gtnewhorizons.modularui.api.forge.SlotItemHandler";
+    private static final String MUI1_ARMOR_WRAPPER = "com.gtnewhorizons.modularui.api.forge.PlayerArmorInvWrapper";
+    private static final String MUI1_MAIN_WRAPPER = "com.gtnewhorizons.modularui.api.forge.PlayerMainInvWrapper";
+    private static final String MUI1_PLAYER_WRAPPER = "com.gtnewhorizons.modularui.api.forge.PlayerInvWrapper";
+    private static final String MUI1_INV_WRAPPER = "com.gtnewhorizons.modularui.api.forge.InvWrapper";
+    private static final String MUI1_RANGED_WRAPPER = "com.gtnewhorizons.modularui.api.forge.RangedWrapper";
+
     private static boolean creativeSlotClassLookupDone = false;
     private static Class<?> creativeSlotClass = null;
 
@@ -37,7 +53,7 @@ public final class SlotLockSlotResolver {
 
     public static boolean isPlayerInventorySlot(Slot slot) {
         int index = getPlayerSlotIndex(slot);
-        return index >= 0 && index <= 35;
+        return index >= SlotLockConstants.HOTBAR_START && index <= SlotLockConstants.PLAYER_INV_MAX;
     }
 
     public static int getPlayerSlotIndex(Slot slot) {
@@ -53,13 +69,6 @@ public final class SlotLockSlotResolver {
 
         Slot realSlot = unwrapSlot(slot);
 
-        /*
-         * CreativeSlot is a wrapper.
-         * Its own getSlotIndex() is NOT always the real InventoryPlayer index.
-         * If unwrap fails, do not guess.
-         * Otherwise creative armor/crafting/special slots can be mistaken for
-         * player hotbar slots because their local indexes can overlap with 0-8.
-         */
         if (isCreativeSlot(slot) && realSlot == slot) {
             SLOT_INDEX_CACHE.put(slot, Integer.valueOf(-1));
             return -1;
@@ -101,7 +110,7 @@ public final class SlotLockSlotResolver {
          * Normal vanilla / normal GuiContainer player inventory slot.
          */
         if (realSlot.inventory instanceof InventoryPlayer) {
-            if (index >= 0 && index <= 35) {
+            if (index >= SlotLockConstants.HOTBAR_START && index <= SlotLockConstants.PLAYER_INV_MAX) {
                 return index;
             }
 
@@ -113,7 +122,7 @@ public final class SlotLockSlotResolver {
          */
         int modularIndex = getModularUIPlayerSlotIndex(realSlot);
 
-        if (modularIndex >= 0 && modularIndex <= 35) {
+        if (modularIndex >= SlotLockConstants.HOTBAR_START && modularIndex <= SlotLockConstants.PLAYER_INV_MAX) {
             return modularIndex;
         }
 
@@ -125,12 +134,6 @@ public final class SlotLockSlotResolver {
             return null;
         }
 
-        /*
-         * Creative inventory wraps real Slot in GuiContainerCreative.CreativeSlot.
-         * Do not rely only on field name "slot".
-         * In 1.7.10 / dev / obfuscated environments, the field name may differ.
-         * So first try common names, then scan all fields whose type is Slot.
-         */
         try {
             Class<?> clazz = getCreativeSlotClass();
 
@@ -219,13 +222,13 @@ public final class SlotLockSlotResolver {
     private static int getModularUIPlayerSlotIndex(Slot slot) {
         int modularUI2Index = getModularUI2PlayerSlotIndex(slot);
 
-        if (modularUI2Index >= 0 && modularUI2Index <= 35) {
+        if (modularUI2Index >= SlotLockConstants.HOTBAR_START && modularUI2Index <= SlotLockConstants.PLAYER_INV_MAX) {
             return modularUI2Index;
         }
 
         int modularUI1Index = getModularUI1PlayerSlotIndex(slot);
 
-        if (modularUI1Index >= 0 && modularUI1Index <= 35) {
+        if (modularUI1Index >= SlotLockConstants.HOTBAR_START && modularUI1Index <= SlotLockConstants.PLAYER_INV_MAX) {
             return modularUI1Index;
         }
 
@@ -257,72 +260,40 @@ public final class SlotLockSlotResolver {
                 String className = handler.getClass()
                     .getName();
 
-                if ("com.cleanroommc.modularui.utils.item.PlayerArmorInvWrapper".equals(className)) {
+                if (MUI2_ARMOR_WRAPPER.equals(className)) {
                     return -1;
                 }
 
-                if ("com.cleanroommc.modularui.utils.item.PlayerMainInvWrapper".equals(className)) {
+                if (MUI2_MAIN_WRAPPER.equals(className) || MUI2_PLAYER_WRAPPER.equals(className)) {
                     int result = localIndex + offset;
-
-                    if (result >= 0 && result <= 35) {
+                    if (result >= SlotLockConstants.HOTBAR_START && result <= SlotLockConstants.PLAYER_INV_MAX) {
                         return result;
                     }
-
                     return -1;
                 }
 
-                if ("com.cleanroommc.modularui.utils.item.PlayerInvWrapper".equals(className)) {
-                    int result = localIndex + offset;
-
-                    if (result >= 0 && result <= 35) {
-                        return result;
-                    }
-
-                    return -1;
-                }
-
-                if ("com.cleanroommc.modularui.utils.item.InvWrapper".equals(className)) {
+                if (MUI2_INV_WRAPPER.equals(className)) {
                     Object inv = invokeNoArg(handler, "getInv");
-
-                    if (inv == null) {
-                        inv = invokeNoArg(handler, "getInventory");
-                    }
-
-                    if (inv == null) {
-                        inv = findInventoryPlayerInFields(handler);
-                    }
+                    if (inv == null) inv = invokeNoArg(handler, "getInventory");
+                    if (inv == null) inv = findInventoryPlayerInFields(handler);
 
                     if (inv instanceof InventoryPlayer) {
                         int result = localIndex + offset;
-
-                        if (result >= 0 && result <= 35) {
+                        if (result >= SlotLockConstants.HOTBAR_START && result <= SlotLockConstants.PLAYER_INV_MAX) {
                             return result;
                         }
                     }
-
                     return -1;
                 }
 
-                if ("com.cleanroommc.modularui.utils.item.RangedWrapper".equals(className)) {
+                if (MUI2_RANGED_WRAPPER.equals(className)) {
                     offset += readIntField(handler, "minSlot", 0);
 
                     Object next = invokeNoArg(handler, "getCompose");
-
-                    if (next == null) {
-                        next = invokeNoArg(handler, "getComposeHandler");
-                    }
-
-                    if (next == null) {
-                        next = readObjectField(handler, "compose");
-                    }
-
-                    if (next == null) {
-                        next = readObjectField(handler, "handler");
-                    }
-
-                    if (next == null) {
-                        next = readObjectField(handler, "wrapped");
-                    }
+                    if (next == null) next = invokeNoArg(handler, "getComposeHandler");
+                    if (next == null) next = readObjectField(handler, "compose");
+                    if (next == null) next = readObjectField(handler, "handler");
+                    if (next == null) next = readObjectField(handler, "wrapped");
 
                     handler = next;
                     continue;
@@ -343,7 +314,7 @@ public final class SlotLockSlotResolver {
         modularUI2SlotItemHandlerLookupDone = true;
 
         try {
-            modularUI2SlotItemHandlerClass = Class.forName("com.cleanroommc.modularui.utils.item.SlotItemHandler");
+            modularUI2SlotItemHandlerClass = Class.forName(MUI2_SLOT_HANDLER);
         } catch (Throwable ignored) {
             modularUI2SlotItemHandlerClass = null;
         }
@@ -376,76 +347,41 @@ public final class SlotLockSlotResolver {
                 String className = handler.getClass()
                     .getName();
 
-                if ("com.gtnewhorizons.modularui.api.forge.PlayerArmorInvWrapper".equals(className)) {
+                if (MUI1_ARMOR_WRAPPER.equals(className)) {
                     return -1;
                 }
 
-                if ("com.gtnewhorizons.modularui.api.forge.PlayerMainInvWrapper".equals(className)) {
+                if (MUI1_MAIN_WRAPPER.equals(className) || MUI1_PLAYER_WRAPPER.equals(className)) {
                     int result = localIndex + offset;
-
-                    if (result >= 0 && result <= 35) {
+                    if (result >= SlotLockConstants.HOTBAR_START && result <= SlotLockConstants.PLAYER_INV_MAX) {
                         return result;
                     }
-
                     return -1;
                 }
 
-                if ("com.gtnewhorizons.modularui.api.forge.PlayerInvWrapper".equals(className)) {
-                    int result = localIndex + offset;
-
-                    if (result >= 0 && result <= 35) {
-                        return result;
-                    }
-
-                    return -1;
-                }
-
-                if ("com.gtnewhorizons.modularui.api.forge.InvWrapper".equals(className)) {
+                if (MUI1_INV_WRAPPER.equals(className)) {
                     Object inv = tryGetSourceInventory(handler);
-
-                    if (inv == null) {
-                        inv = invokeNoArg(handler, "getInv");
-                    }
-
-                    if (inv == null) {
-                        inv = invokeNoArg(handler, "getInventory");
-                    }
-
-                    if (inv == null) {
-                        inv = findInventoryPlayerInFields(handler);
-                    }
+                    if (inv == null) inv = invokeNoArg(handler, "getInv");
+                    if (inv == null) inv = invokeNoArg(handler, "getInventory");
+                    if (inv == null) inv = findInventoryPlayerInFields(handler);
 
                     if (inv instanceof InventoryPlayer) {
                         int result = localIndex + offset;
-
-                        if (result >= 0 && result <= 35) {
+                        if (result >= SlotLockConstants.HOTBAR_START && result <= SlotLockConstants.PLAYER_INV_MAX) {
                             return result;
                         }
                     }
-
                     return -1;
                 }
 
-                if ("com.gtnewhorizons.modularui.api.forge.RangedWrapper".equals(className)) {
+                if (MUI1_RANGED_WRAPPER.equals(className)) {
                     offset += readIntField(handler, "minSlot", 0);
 
                     Object next = invokeNoArg(handler, "getCompose");
-
-                    if (next == null) {
-                        next = invokeNoArg(handler, "getComposeHandler");
-                    }
-
-                    if (next == null) {
-                        next = readObjectField(handler, "compose");
-                    }
-
-                    if (next == null) {
-                        next = readObjectField(handler, "handler");
-                    }
-
-                    if (next == null) {
-                        next = readObjectField(handler, "wrapped");
-                    }
+                    if (next == null) next = invokeNoArg(handler, "getComposeHandler");
+                    if (next == null) next = readObjectField(handler, "compose");
+                    if (next == null) next = readObjectField(handler, "handler");
+                    if (next == null) next = readObjectField(handler, "wrapped");
 
                     handler = next;
                     continue;
@@ -466,7 +402,7 @@ public final class SlotLockSlotResolver {
         modularUI1SlotItemHandlerLookupDone = true;
 
         try {
-            modularUI1SlotItemHandlerClass = Class.forName("com.gtnewhorizons.modularui.api.forge.SlotItemHandler");
+            modularUI1SlotItemHandlerClass = Class.forName(MUI1_SLOT_HANDLER);
         } catch (Throwable ignored) {
             modularUI1SlotItemHandlerClass = null;
         }

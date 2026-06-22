@@ -102,7 +102,8 @@ public class SlotLockAutoMover {
          */
         markCurrentlyEmptyLockedSlots(player.inventory);
 
-        for (int i = 0; i < 36; i++) {
+        // 使用常量替换 0 到 35
+        for (int i = SlotLockConstants.HOTBAR_START; i <= SlotLockConstants.PLAYER_INV_MAX; i++) {
             if (!SlotLockManager.isLockedPlayerIndex(i)) {
                 continue;
             }
@@ -150,7 +151,8 @@ public class SlotLockAutoMover {
      * 后面它被塞入物品时也会被搬走。
      */
     private void markCurrentlyEmptyLockedSlots(InventoryPlayer inventory) {
-        for (int i = 0; i < 36; i++) {
+        // 使用常量替换 0 到 35
+        for (int i = SlotLockConstants.HOTBAR_START; i <= SlotLockConstants.PLAYER_INV_MAX; i++) {
             if (!SlotLockManager.isLockedPlayerIndex(i)) {
                 continue;
             }
@@ -357,11 +359,11 @@ public class SlotLockAutoMover {
     /**
      * 找一个未锁定的空槽。
      *
-     * 优先放进主背包 9-35，
-     * 最后才放进快捷栏 0-8。
+     * 优先放进主背包，最后才放进快捷栏。
      */
     private int findUnlockedEmptySlot(InventoryPlayer inventory) {
-        for (int i = 9; i < 36; i++) {
+        // 使用常量替换 9 到 35
+        for (int i = SlotLockConstants.MAIN_INV_START; i <= SlotLockConstants.MAIN_INV_END; i++) {
             if (SlotLockManager.isLockedPlayerIndex(i)) {
                 continue;
             }
@@ -371,7 +373,8 @@ public class SlotLockAutoMover {
             }
         }
 
-        for (int i = 0; i < 9; i++) {
+        // 使用常量替换 0 到 8
+        for (int i = SlotLockConstants.HOTBAR_START; i <= SlotLockConstants.HOTBAR_END; i++) {
             if (SlotLockManager.isLockedPlayerIndex(i)) {
                 continue;
             }
